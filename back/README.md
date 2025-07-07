@@ -1,0 +1,20 @@
+CREATE TABLE keywords (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  color INT NOT NULL COMMENT 'Stores color as hex value (0xRRGGBB)',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_keywords_name (name)
+) ENGINE=InnoDB;
+
+CREATE TABLE keyword_to_user (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  keyword_id BIGINT NOT NULL,
+  user_handle VARCHAR(255) NOT NULL,
+  access_level INT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (keyword_id) REFERENCES keywords(id) ON DELETE CASCADE,
+  UNIQUE KEY (keyword_id, user_handle),
+  KEY (user_handle)
+) ENGINE=InnoDB;

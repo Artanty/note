@@ -3,7 +3,10 @@ import express, { Request, Response } from 'express';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { validateApiKey } from '../middlewares/validateApiKey';
-import { StorageService } from '../utils/storageService';
+import { checkFileWithData } from '../utils/fileStorageService';
+import { MemoryStorageService } from '../utils/memoryStorageService';
+
+
 const router = express.Router();
 
 const STORAGE_ROOT = path.join(__dirname, '..', 'storage');
@@ -80,7 +83,7 @@ router.post('/save', validateApiKey, async (req: Request, res: Response) => {
     );
 
     // 6.1 save to variable in storage service
-    StorageService.set(safePath, data);
+    MemoryStorageService.set(safePath, data);
 
     // 7. Respond with success
     res.json({
@@ -101,33 +104,7 @@ router.post('/save', validateApiKey, async (req: Request, res: Response) => {
   }
 });
 
-/**
- * Checks if a file exists at the given path with matching data
- * @param {string} filePath - Full path to the file
- * @param {any} data - Data to compare against file content
- * @returns {Promise<boolean>} - True if file exists and data matches
- */
-async function checkFileWithData(filePath: string, dataToCheck: any, propToCheck = 'accessToken'): Promise<boolean> {
-  try {
-    // 1. Check if file exists
-    await fs.access(filePath);
-    
-    // 2. Read file content
-    const fileContent = await fs.readFile(filePath, 'utf8');
-    
-    // 3. Compare stringified data
-    const currentData = JSON.parse(fileContent);
-    
-    return currentData[propToCheck] === dataToCheck[propToCheck]
 
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
-      // File doesn't exist
-      return false;
-    }
-    throw error; // Re-throw other errors
-  }
-}
 
  
 // export interface CheckTokenReq {
@@ -151,7 +128,7 @@ router.post('/check', async (req, res) => {
   const storageDir = path.join(STORAGE_ROOT, safePath);
   const filePath = path.join(storageDir, safeFileName);
   
-  const validateResult = await checkFileWithData(filePath, dataToCompare)
+  const validateResult = await checkFileWithData(filePath, dataToCompare, 'accessToken', false)
 
   // http%3A%2F%2Flocalhost%3A4222
   // http%3A%2F%2Flocalhost%3A4222
@@ -177,7 +154,7 @@ router.post('/check-var', async (req, res) => {
   const safePath = sanitizePath(encodedHostOrigin_forPath.toString());
   
   // 6.1 check variable in storage service
-  const variable = StorageService.get(safePath);
+  const variable = MemoryStorageService.get(safePath);
 
   res.json({
     variable

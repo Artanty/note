@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { Request, Response, NextFunction } from 'express';
 import { dd } from '../utils/dd';
-
-import { StorageService } from '../utils/storageService';
+import path from 'path';
+import { checkFileWithData } from '../utils/fileStorageService';
+import { MemoryStorageService } from '../utils/memoryStorageService';
+const STORAGE_ROOT = path.join(__dirname, '..', 'storage');
 
 // Sanitize path components - DUPLICATE todo replace
 function sanitizePath(input: string) {
@@ -15,8 +17,7 @@ function sanitizePath(input: string) {
 
 export async function validateUserAccessToken(req: Request, res: Response, next: NextFunction) {
   dd('validateUserAccessToken START');
-
-  // Quick validation with early returns
+  
   const authHeader = req.headers['authorization'];
   if (!authHeader?.startsWith('Bearer ')) {
     dd('Missing/invalid Authorization header');
@@ -26,11 +27,6 @@ export async function validateUserAccessToken(req: Request, res: Response, next:
   const accessToken = authHeader.split(' ')[1];
   
   const hostOrigin = String(req.headers['x-requester-url']);
-
-  dd('Params:', { 
-    accessToken: accessToken ? '****' + accessToken.slice(-4) : 'MISSING',
-    hostOrigin: hostOrigin || 'MISSING' 
-  });
 
   if (!accessToken || !hostOrigin) {
     dd('Missing required parameters');
@@ -44,34 +40,41 @@ export async function validateUserAccessToken(req: Request, res: Response, next:
     // пробуем достать переменную из памяти
     const encodedHostOrigin_forPath = encodeURIComponent(hostOrigin)
     const safePath = sanitizePath(encodedHostOrigin_forPath.toString());
-  
-    console.log('encodedHostOrigin_forPath: ' + encodedHostOrigin_forPath)
-    console.log('safePath: ' + safePath)
-
-    // 6.1 check variable in storage service
-    const variable = StorageService.get(safePath);
+    const memStoreVariable = MemoryStorageService.get(safePath);
     
-    // res.json({
-    //   variable
-    // });
-    // const response = await axios.post(`${KEY_BACK_URL}/validate`, {
-    //   requesterApiKey: token,
-    //   requesterUrl
-    // }, {
-    //   headers: {
-    //     'X-Project-Id': process.env.PROJECT_ID,
-    //     'X-Project-Domain-Name': `${req.protocol}://${req.get('host')}`,
-    //     'X-Api-Key': process.env.BASE_KEY
-    //   }
-    // });
-    console.log('variable.accessToken: ' + variable.accessToken)
-    console.log('saved in memory accessToken: ' + accessToken)
+    let matchedData: any = null
+    if (!memStoreVariable || (memStoreVariable.accessToken !== accessToken)) {
+      dd('NO variable in memory store or did not match. trying file store...');
 
-    if (!variable || (variable.accessToken !== accessToken)) {
-      dd('NO variable in memory or did not match');
-      return res.status(403).json({ error: 'Invalid token' });
+      // try to get from file
+      const fileName = `token.json`;
+      const safeFileName = sanitizePath(fileName.toString());
+      // Build storage path
+      const storageDir = path.join(STORAGE_ROOT, safePath);
+      const filePath = path.join(storageDir, safeFileName);
+
+      const fileStoreVariable = await checkFileWithData(
+        filePath, 
+        { accessToken }, 
+        'accessToken', 
+        true
+      )
+
+      if (!fileStoreVariable) {
+        dd('NO variable in file store or did not match. 403');
+        return res.status(403).json({ error: 'Invalid token' });
+      } else {
+        matchedData = fileStoreVariable
+        MemoryStorageService.set(safePath, fileStoreVariable);
+        dd('FOUND variable in file store. SAVED in mem store');
+      }
+      
+    } else {
+      matchedData = memStoreVariable
+      dd('FOUND variable in mem store.');
     }
-    req.headers['x-user-handler'] = variable.userHandler;
+    
+    req.headers['x-user-handler'] = matchedData.userHandler;
     dd('validate user access token END - Valid');
     next();
   } catch (error: any) {

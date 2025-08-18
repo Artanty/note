@@ -1,4 +1,4 @@
-export class StorageService {
+export class MemoryStorageService {
 	private static variables: Record<string, any> = {};
 
 	// Check if a variable exists
@@ -17,13 +17,13 @@ export class StorageService {
 	}
 
 	// Remove a variable
-	static delete(key: string): boolean {
-		if (this.has(key)) {
-			delete this.variables[key];
-			return true;
-		}
-		return false;
-	}
+	// static delete(key: string): boolean {
+	// 	if (this.has(key)) {
+	// 		delete this.variables[key];
+	// 		return true;
+	// 	}
+	// 	return false;
+	// }
 
 	// Clear all variables
 	static clear(): void {

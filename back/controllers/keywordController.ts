@@ -23,11 +23,12 @@ class KeywordController {
 			await connection.execute(
 				'INSERT INTO keyword_to_user (keyword_id, user_handle, access_level) VALUES (?, ?, ?)',
 				[keywordId, userHandle, 2]
-			);
+			);		
 
 			await connection.commit();
 			return keywordId;
-		} catch (error) {
+		} catch (error) { 
+			console.log(error)
 			await connection.rollback();
 			throw error;
 		} finally {
@@ -128,16 +129,31 @@ class KeywordController {
 	}
 
 	// List all keywords accessible to a user
-	static async getUserKeywords(userHandle: string) {
+	static async getUserKeywords(userHandler: string) {
+		console.log('userHandler: ' + userHandler)
 		const pool = createPool();
-		const [rows] = await pool.execute(
-			`SELECT k.*, ku.access_level 
-             FROM keywords k
-             JOIN keyword_to_user ku ON k.id = ku.keyword_id
-             WHERE ku.user_handle = ?`,
-			[userHandle]
-		);
-		return rows;
+		const connection = await pool.getConnection();
+		try {
+			await connection.beginTransaction();
+
+			const [rows] = await pool.execute(
+				`SELECT k.*, ku.access_level 
+	             FROM keywords k
+	             JOIN keyword_to_user ku ON k.id = ku.keyword_id
+	             WHERE ku.user_handler = ?`,
+				[userHandler]
+			);
+			
+			await connection.commit();
+			return rows;
+		} catch (error) { 
+			console.log(error)
+			await connection.rollback();
+			throw error;
+		} finally {
+			connection.release();
+		}
+		
 	}
 }
 

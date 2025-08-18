@@ -1,0 +1,108 @@
+<div class="container">
+  <h2>Keywords Management</h2>
+
+  <!-- Create New Keyword -->
+  <div class="card mb-4">
+    <div class="card-header">Create New Keyword</div>
+    <div class="card-body">
+      <form [formGroup]="keywordForm" (ngSubmit)="createKeyword()">
+        <div class="mb-3">
+          <label for="name" class="form-label">Keyword Name</label>
+          <input type="text" class="form-control" id="name" formControlName="name">
+        </div>
+        <div class="mb-3">
+          <label for="color" class="form-label">Color</label>
+          <input type="color" class="form-control" id="color" 
+                 [value]="hexColor(keywordForm.get('color')?.value)"
+                 (input)="onColorChange($event)">
+        </div>
+        <button type="submit" class="btn btn-primary" [disabled]="!keywordForm.valid">Create</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Keywords List -->
+  <div class="card mb-4">
+    <div class="card-header">Your Keywords</div>
+    <div class="card-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Color</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let keyword of keywords">
+            <td>{{ keyword.name }}</td>
+            <td>
+              <span class="color-badge" [style.background]="hexColor(keyword.color)"></span>
+              {{ hexColor(keyword.color) }}
+            </td>
+            <td>{{ keyword.created_at | date }}</td>
+            <td>
+              <button class="btn btn-sm btn-info me-2" (click)="selectKeyword(keyword)">View</button>
+              <button class="btn btn-sm btn-danger" (click)="deleteKeyword(keyword.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Keyword Details -->
+  <div class="card mb-4" *ngIf="selectedKeyword">
+    <div class="card-header">
+      Keyword Details: {{ selectedKeyword.name }}
+    </div>
+    <div class="card-body">
+      <div *ngIf="!isEditing">
+        <p><strong>Color:</strong> <span class="color-badge" [style.background]="hexColor(selectedKeyword.color)"></span> {{ hexColor(selectedKeyword.color) }}</p>
+        <p><strong>Created:</strong> {{ selectedKeyword.created_at | date }}</p>
+        <p><strong>Last Updated:</strong> {{ selectedKeyword.updated_at | date }}</p>
+        <button class="btn btn-primary me-2" (click)="startEditing()">Edit</button>
+        <button class="btn btn-secondary" (click)="selectedKeyword = null">Close</button>
+      </div>
+
+      <!-- Edit Form -->
+      <form [formGroup]="keywordForm" (ngSubmit)="updateKeyword()" *ngIf="isEditing">
+        <div class="mb-3">
+          <label for="editName" class="form-label">Name</label>
+          <input type="text" class="form-control" id="editName" formControlName="name">
+        </div>
+        <div class="mb-3">
+          <label for="editColor" class="form-label">Color</label>
+          <input type="color" class="form-control" id="editColor" 
+                 [value]="hexColor(keywordForm.get('color')?.value)"
+                  (input)="onColorChange($event)">
+        </div>
+        <button type="submit" class="btn btn-primary me-2" [disabled]="!keywordForm.valid">Save</button>
+        <button type="button" class="btn btn-secondary" (click)="cancelEditing()">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Share Keyword -->
+  <div class="card" *ngIf="selectedKeyword">
+    <div class="card-header">Share Keyword</div>
+    <div class="card-body">
+      <form [formGroup]="shareForm" (ngSubmit)="shareKeyword()">
+        <div class="mb-3">
+          <label for="userHandle" class="form-label">User Handle</label>
+          <input type="text" class="form-control" id="userHandle" formControlName="user_handle">
+        </div>
+        <div class="mb-3">
+          <label for="accessLevel" class="form-label">Access Level</label>
+          <select class="form-select" id="accessLevel" formControlName="access_level">
+            <option value="1">Read</option>
+            <option value="2">Read/Write</option>
+            <option value="3">Admin</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" [disabled]="!shareForm.valid">Share</button>
+      </form>
+    </div>
+  </div>
+</div>

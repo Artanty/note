@@ -1,0 +1,23 @@
+import { loadRemoteModule } from "@angular-architects/module-federation"
+import {
+  Component,
+  Injector,
+  OnInit,
+  ViewChild,
+  ViewContainerRef,
+} from "@angular/core"
+
+@Component({
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrl: "./app.component.scss",
+})
+export class AppComponent implements OnInit {
+
+  constructor() {
+  
+  }
+
+  ngOnInit(): void {}
+  
+}

@@ -1,0 +1,46 @@
+{
+    "event_bus_hooks": [
+        {
+            "on": {
+                "event": "ASK_BACK_URLS"
+            },
+            "push": {
+                "type": "ANSWER",
+                "payload": {
+                    "project_id": "note",
+                    "back_url": "http://localhost:3216"
+                }
+            },
+            "lives": 1
+        }
+    ],
+    "interceptors": [
+        {
+            "url_pattern": "/^http:\/\/localhost:3216\/keywords(\/.*)?$/",
+            "data": [
+                {
+                    "target": "headers",
+                    "key": "Authorization",
+                    "valueHandler": {
+                        "source": "localStorage",
+                        "prop": "accessToken",
+                        "prepend": "Bearer "
+                    } 
+                },
+                {
+                    "target": "headers",
+                    "key": "X-Requester-URL",
+                    "valueHandler": {
+                        "source": "window",
+                        "prop": "location.origin"
+                    } 
+                }
+            ]
+        }
+    ],
+    
+    "desc": "preload - чтобы без загрузки ремоута взять адрес его бэка",
+    "todo": "добавить сборку этой секции при serve/build"
+
+}
+

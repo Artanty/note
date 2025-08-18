@@ -1,0 +1,25 @@
+.noteWrapper {
+	background-color: #000;
+	color: #fff;
+
+}
+
+#result {
+	padding: 5px 10px;
+	border-radius: 11px;
+	margin-top: 6px;
+	margin-left: 10px;
+	width: calc(100% - 12px);
+	word-break: break-word;
+	font-size: 14px;
+	font-family: Anonymous Pro, monospace;
+	color: #ddd;
+	border: none !important;
+	outline: none !important;
+	resize: none !important;
+	background-color: #0003;
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(194, 210, 228, 0) rgba(194, 210, 228, 0);
+	box-sizing: border-box;
+}

@@ -1,29 +1,74 @@
 <div class="container">
   <h2>Keywords Management</h2>
-
+  <div class="flex">
+    <button [class.active]="state === 'CREATE'" (click)="setState('CREATE')">CREATE</button>
+    <button [class.active]="state === 'EDIT'" (click)="setState('EDIT')" [disabled]="!selectedKeyword">EDIT</button>
+    <button [class.active]="state === 'VIEW'" (click)="setState('VIEW')" [disabled]="!selectedKeyword">VIEW</button>
+  </div>
   <!-- Create New Keyword -->
-  <div class="card mb-4">
-    <div class="card-header">Create New Keyword</div>
-    <div class="card-body">
-      <form [formGroup]="keywordForm" (ngSubmit)="createKeyword()">
+  <div class="card card-create mb-4">
+    <div *ngIf="state === 'CREATE'">
+      <div class="card-header">CREATE</div>
+        <div class="card-body">
+          <form [formGroup]="createKeywordForm" (ngSubmit)="createKeyword()">
+            <div class="mb-3">
+              <label for="name" class="form-label">Keyword Name</label>
+              <input type="text" class="form-control" id="name" formControlName="name">
+            </div>
+            <div class="mb-3">
+              <label for="color" class="form-label">Color</label>
+              <input type="color" class="form-control" id="color" 
+                     [value]="hexColor(createKeywordForm.get('color')?.value)"
+                     (input)="onColorChange($event, true)">
+            </div>
+            <button type="submit" class="btn btn-primary" [disabled]="!createKeywordForm.valid">CREATE</button>
+          </form>
+        </div>
+    </div>
+    <div *ngIf="state === 'EDIT'">
+      <!-- Edit Form -->
+      <form [formGroup]="editKeywordForm" (ngSubmit)="updateKeyword()" *ngIf="isEditing">
         <div class="mb-3">
-          <label for="name" class="form-label">Keyword Name</label>
-          <input type="text" class="form-control" id="name" formControlName="name">
+          <label for="editName" class="form-label">Name</label>
+          <input type="text" class="form-control" id="editName" formControlName="name">
         </div>
         <div class="mb-3">
-          <label for="color" class="form-label">Color</label>
-          <input type="color" class="form-control" id="color" 
-                 [value]="hexColor(keywordForm.get('color')?.value)"
-                 (input)="onColorChange($event)">
+          <label for="editColor" class="form-label">Color</label>
+          <input type="color" class="form-control" id="editColor" 
+                 [value]="hexColor(editKeywordForm.get('color')?.value)"
+                  (input)="onColorChange($event, false)">
         </div>
-        <button type="submit" class="btn btn-primary" [disabled]="!keywordForm.valid">Create</button>
+        <button type="submit" class="btn btn-primary me-2" [disabled]="!editKeywordForm.valid">UPDATE</button>
+        
       </form>
+    </div>
+
+    <div *ngIf="state === 'VIEW'">
+      <!-- Keyword Details -->
+      <div class="card mb-4" *ngIf="selectedKeyword">
+        <div class="card-header">
+          GET 1: {{ selectedKeyword.name }}
+        </div>
+        <div class="card-body">
+          <div *ngIf="!isEditing">
+            <p><strong>Color:</strong> <span class="color-badge" [style.background]="hexColor(selectedKeyword.color)"></span> {{ hexColor(selectedKeyword.color) }}</p>
+            <p><strong>Created:</strong> {{ selectedKeyword.created_at | date }}</p>
+            <p><strong>Last Updated:</strong> {{ selectedKeyword.updated_at | date }}</p>
+            
+            
+          </div>
+
+          
+        </div>
+      </div>
     </div>
   </div>
 
+  
+
   <!-- Keywords List -->
-  <div class="card mb-4">
-    <div class="card-header">Your Keywords</div>
+  <div class="card card-list mb-4">
+    <div class="card-header">LIST</div>
     <div class="card-body">
       <table class="table">
         <thead>
@@ -43,7 +88,7 @@
             </td>
             <td>{{ keyword.created_at | date }}</td>
             <td>
-              <button class="btn btn-sm btn-info me-2" (click)="selectKeyword(keyword)">View</button>
+              <button class="btn btn-sm btn-info me-2" (click)="selectKeyword(keyword.id)">View</button>
               <button class="btn btn-sm btn-danger" (click)="deleteKeyword(keyword.id)">Delete</button>
             </td>
           </tr>
@@ -52,37 +97,7 @@
     </div>
   </div>
 
-  <!-- Keyword Details -->
-  <div class="card mb-4" *ngIf="selectedKeyword">
-    <div class="card-header">
-      Keyword Details: {{ selectedKeyword.name }}
-    </div>
-    <div class="card-body">
-      <div *ngIf="!isEditing">
-        <p><strong>Color:</strong> <span class="color-badge" [style.background]="hexColor(selectedKeyword.color)"></span> {{ hexColor(selectedKeyword.color) }}</p>
-        <p><strong>Created:</strong> {{ selectedKeyword.created_at | date }}</p>
-        <p><strong>Last Updated:</strong> {{ selectedKeyword.updated_at | date }}</p>
-        <button class="btn btn-primary me-2" (click)="startEditing()">Edit</button>
-        <button class="btn btn-secondary" (click)="selectedKeyword = null">Close</button>
-      </div>
-
-      <!-- Edit Form -->
-      <form [formGroup]="keywordForm" (ngSubmit)="updateKeyword()" *ngIf="isEditing">
-        <div class="mb-3">
-          <label for="editName" class="form-label">Name</label>
-          <input type="text" class="form-control" id="editName" formControlName="name">
-        </div>
-        <div class="mb-3">
-          <label for="editColor" class="form-label">Color</label>
-          <input type="color" class="form-control" id="editColor" 
-                 [value]="hexColor(keywordForm.get('color')?.value)"
-                  (input)="onColorChange($event)">
-        </div>
-        <button type="submit" class="btn btn-primary me-2" [disabled]="!keywordForm.valid">Save</button>
-        <button type="button" class="btn btn-secondary" (click)="cancelEditing()">Cancel</button>
-      </form>
-    </div>
-  </div>
+  
 
   <!-- Share Keyword -->
   <div class="card" *ngIf="selectedKeyword">
@@ -92,6 +107,10 @@
         <div class="mb-3">
           <label for="userHandle" class="form-label">User Handle</label>
           <input type="text" class="form-control" id="userHandle" formControlName="user_handle">
+        </div>
+        <div class="mb-3">
+          <!-- <ng-container *ngComponentOutlet="userSelectorComponent"></ng-container> -->
+
         </div>
         <div class="mb-3">
           <label for="accessLevel" class="form-label">Access Level</label>
@@ -106,3 +125,22 @@
     </div>
   </div>
 </div>
+<div class="red" #placeHolder>
+  <!-- <user-selector 
+    [filteredUsers]="availableUsers"
+    (userSelected)="onUserSelected($event)"
+  ></user-selector> -->
+  <!-- <app-dynamic-socket 
+    componentName="user-selector"
+    [componentProps]="{
+      users: availableUsers,
+      onUserSelected: handleUserSelection.bind(this)
+    }">
+  </app-dynamic-socket> -->
+  <app-web-component-wrapper
+    [componentName]="'user-selector'"
+    [inputs]="userSelectorInputs"
+    [outputs]="userSelectorOutputs"
+  ></app-web-component-wrapper>
+</div>
+

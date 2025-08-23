@@ -12,6 +12,9 @@ import { BehaviorSubject, filter, Observable, take, tap } from "rxjs";
 import { BusEvent, EVENT_BUS, EVENT_BUS_PUSHER, HOST_NAME } from "typlib";
 import { createCustomElement } from "@angular/elements";
 import { KeywordComponent } from './components/keyword/keyword.component';
+import { DynamicSocketComponent } from "./components/_remote/dynamic-socket.component";
+import { DynamicComponent } from "./components/_remote/dynamic/dynamic.component";
+import { WebComponentWrapperComponent } from "./components/_remote/web-component-wrapper";
 
 
 export const CHILD_ROUTES = [
@@ -52,6 +55,10 @@ export const CHILD_ROUTES = [
   declarations: [
     NoteComponent,
     KeywordComponent,
+    DynamicSocketComponent,
+    DynamicComponent,
+    WebComponentWrapperComponent
+
   ],
   imports: [
     CommonModule,

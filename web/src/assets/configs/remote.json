@@ -16,6 +16,7 @@
     ],
     "interceptors": [
         {
+            "on": "REQUEST",
             "url_pattern": "/^http:\/\/localhost:3216\/keywords(\/.*)?$/",
             "data": [
                 {

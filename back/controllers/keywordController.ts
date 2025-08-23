@@ -21,7 +21,7 @@ class KeywordController {
 
 			// Create owner relationship (access_level 2 = admin)
 			await connection.execute(
-				'INSERT INTO keyword_to_user (keyword_id, user_handle, access_level) VALUES (?, ?, ?)',
+				'INSERT INTO keyword_to_user (keyword_id, user_handler, access_level) VALUES (?, ?, ?)',
 				[keywordId, userHandle, 2]
 			);		
 
@@ -36,21 +36,33 @@ class KeywordController {
 		}
 	}
 
+	// Delete keyword and all its relations (cascades)
+	static async deleteKeyword(keywordId: number, userHandler: string,) {
+		const pool = createPool();
+		const [result] = await pool.execute(
+			`DELETE k FROM keywords k
+             JOIN keyword_to_user ku ON k.id = ku.keyword_id
+             WHERE k.id = ? AND ku.user_handler = ? AND ku.access_level >= 2`,
+			[keywordId, userHandler]
+		);
+		return result.affectedRows > 0;
+	}
+
 	// Get keyword by ID with access check
-	static async getKeyword(keywordId: number, userHandle: string) {
+	static async getKeyword(keywordId: number, userHandler: string) {
 		const pool = createPool();
 		const [rows] = await pool.execute(
 			`SELECT k.*, ku.access_level 
              FROM keywords k
              JOIN keyword_to_user ku ON k.id = ku.keyword_id
-             WHERE k.id = ? AND ku.user_handle = ?`,
-			[keywordId, userHandle]
+             WHERE k.id = ? AND ku.user_handler = ?`,
+			[keywordId, userHandler]
 		);
 		return rows[0] || null;
 	}
 
 	// Update keyword (name and/or color)
-	static async updateKeyword(keywordId: number, userHandle: string, updates: any) {
+	static async updateKeyword(keywordId: number, userHandler: string, updates: any) {
 
 		const fields = [];
 		const values = [];
@@ -68,30 +80,20 @@ class KeywordController {
 			throw new Error('No fields to update');
 		}
 
-		values.push(keywordId, userHandle);
+		values.push(keywordId, userHandler);
 		const pool = createPool();
 		const [result] = await pool.execute(
 			`UPDATE keywords k
              JOIN keyword_to_user ku ON k.id = ku.keyword_id
              SET ${fields.join(', ')}
-             WHERE k.id = ? AND ku.user_handle = ? AND ku.access_level >= 2`,
+             WHERE k.id = ? AND ku.user_handler = ? AND ku.access_level >= 2`,
 			values
 		);
 
 		return result.affectedRows > 0;
 	}
 
-	// Delete keyword and all its relations (cascades)
-	static async deleteKeyword(keywordId: number, userHandle: string,) {
-		const pool = createPool();
-		const [result] = await pool.execute(
-			`DELETE k FROM keywords k
-             JOIN keyword_to_user ku ON k.id = ku.keyword_id
-             WHERE k.id = ? AND ku.user_handle = ? AND ku.access_level >= 2`,
-			[keywordId, userHandle]
-		);
-		return result.affectedRows > 0;
-	}
+	
 
 	// Share keyword with another user
 	static async shareKeyword(keywordId: number, ownerHandle: string, targetHandle: any, accessLevel = 1) {

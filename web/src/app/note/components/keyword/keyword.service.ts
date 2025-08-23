@@ -32,33 +32,27 @@ export class KeywordService {
   }
 
   // Get single keyword
-  getKeyword(id: number, userHandle: string): Observable<Keyword> {
-    return this.http.get<Keyword>(`${this.baseUrl}/${id}`, {
-      params: { user_handle: userHandle }
-    });
+  getKeyword(id: number): Observable<Keyword> {
+    const data = { id: id }
+    return this.http.post<Keyword>(`${this.baseUrl}/get-one`, data);
   }
 
   // Create new keyword
-  createKeyword(keyword: { name: string; color: number }, userHandle: string): Observable<Keyword> {
+  createKeyword(keyword: { name: string; color: number }): Observable<Keyword> {
     return this.http.post<Keyword>(`${this.baseUrl}/create`, {
       ...keyword,
-      user_handle: userHandle
     });
   }
 
   // Update keyword
-  updateKeyword(id: number, keyword: { name?: string; color?: number }, userHandle: string): Observable<Keyword> {
-    return this.http.put<Keyword>(`${this.baseUrl}/${id}`, {
-      ...keyword,
-      user_handle: userHandle
-    });
+  updateKeyword(keyword: { id: number, name?: string; color?: number }): Observable<Keyword> {
+    const data = keyword
+    return this.http.post<Keyword>(`${this.baseUrl}/update`, data);
   }
 
-  // Delete keyword
-  deleteKeyword(id: number, userHandle: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`, {
-      params: { user_handle: userHandle }
-    });
+  deleteKeyword(id: number): Observable<any> {
+    const data = { id: id }
+    return this.http.post<any>(`${this.baseUrl}/delete`, data);
   }
 
   // Share keyword with another user

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  row-gap: 59px;
+  // row-gap: 59px;
 }
 
 .color-badge {
@@ -23,4 +23,31 @@
   width: 80px;
   height: 38px;
   padding: 2px;
+}
+
+.card-create {
+  background: #561111;
+}
+
+.card-list {
+  background: #0e3a0e;
+
+  & .card-body {
+    max-height: 120px;
+    overflow-y: auto;
+  }
+}
+
+.flex {
+  display: flex;
+}
+
+.active {
+  background: green;
+}
+
+.red {
+  height: 100px;
+  width: 100px;
+  background: red;
 }

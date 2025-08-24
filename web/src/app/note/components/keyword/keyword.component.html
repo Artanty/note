@@ -4,6 +4,7 @@
     <button [class.active]="state === 'CREATE'" (click)="setState('CREATE')">CREATE</button>
     <button [class.active]="state === 'EDIT'" (click)="setState('EDIT')" [disabled]="!selectedKeyword">EDIT</button>
     <button [class.active]="state === 'VIEW'" (click)="setState('VIEW')" [disabled]="!selectedKeyword">VIEW</button>
+    <button [class.active]="state === 'SHARE'" (click)="displayShareKeyword()" [disabled]="!selectedKeyword">SHARE</button>
   </div>
   <!-- Create New Keyword -->
   <div class="card card-create mb-4">
@@ -62,6 +63,35 @@
         </div>
       </div>
     </div>
+
+    <div *ngIf="state === 'SHARE'">
+      <div class="card" *ngIf="selectedKeyword">
+        <h3 class="card-header">Поделиться</h3>
+        <div class="card-body">
+          <form [formGroup]="shareForm" (ngSubmit)="shareKeyword()">
+
+            <div class="mb-3">
+              <app-web-component-wrapper
+                [componentName]="'user-selector'"
+                [inputs]="userSelectorInputs"
+                [outputs]="userSelectorOutputs"
+              ></app-web-component-wrapper>
+
+            </div>
+            <div class="mb-3">
+              <label for="accessLevel" class="form-label">Access Level</label>
+              <select class="form-select" id="accessLevel" formControlName="access_level">
+                <option value="1">Read</option>
+                <option value="2">Read/Write</option>
+                <option value="3">Admin</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary" [disabled]="!shareForm.valid">Share</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    
   </div>
 
   
@@ -84,12 +114,13 @@
             <td>{{ keyword.name }}</td>
             <td>
               <span class="color-badge" [style.background]="hexColor(keyword.color)"></span>
-              {{ hexColor(keyword.color) }}
+              <!-- {{ hexColor(keyword.color) }} -->
             </td>
-            <td>{{ keyword.created_at | date }}</td>
+            <td>{{ keyword.created_at | date:'dd.MM' }}</td>
             <td>
               <button class="btn btn-sm btn-info me-2" (click)="selectKeyword(keyword.id)">View</button>
-              <button class="btn btn-sm btn-danger" (click)="deleteKeyword(keyword.id)">Delete</button>
+              <button class="btn btn-sm btn-danger" (click)="displayShareKeyword(keyword.id)">Share</button>
+              <button class="btn btn-sm btn-danger" (click)="deleteKeyword(keyword.id)">Del</button>
             </td>
           </tr>
         </tbody>
@@ -98,49 +129,6 @@
   </div>
 
   
-
-  <!-- Share Keyword -->
-  <div class="card" *ngIf="selectedKeyword">
-    <div class="card-header">Share Keyword</div>
-    <div class="card-body">
-      <form [formGroup]="shareForm" (ngSubmit)="shareKeyword()">
-        <div class="mb-3">
-          <label for="userHandle" class="form-label">User Handle</label>
-          <input type="text" class="form-control" id="userHandle" formControlName="user_handle">
-        </div>
-        <div class="mb-3">
-          <!-- <ng-container *ngComponentOutlet="userSelectorComponent"></ng-container> -->
-
-        </div>
-        <div class="mb-3">
-          <label for="accessLevel" class="form-label">Access Level</label>
-          <select class="form-select" id="accessLevel" formControlName="access_level">
-            <option value="1">Read</option>
-            <option value="2">Read/Write</option>
-            <option value="3">Admin</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary" [disabled]="!shareForm.valid">Share</button>
-      </form>
-    </div>
-  </div>
 </div>
-<div class="red" #placeHolder>
-  <!-- <user-selector 
-    [filteredUsers]="availableUsers"
-    (userSelected)="onUserSelected($event)"
-  ></user-selector> -->
-  <!-- <app-dynamic-socket 
-    componentName="user-selector"
-    [componentProps]="{
-      users: availableUsers,
-      onUserSelected: handleUserSelection.bind(this)
-    }">
-  </app-dynamic-socket> -->
-  <app-web-component-wrapper
-    [componentName]="'user-selector'"
-    [inputs]="userSelectorInputs"
-    [outputs]="userSelectorOutputs"
-  ></app-web-component-wrapper>
-</div>
+
 

@@ -20,7 +20,7 @@ export class KeywordComponent implements OnInit {
   shareForm: FormGroup;
   createKeywordForm: FormGroup;
   editKeywordForm: FormGroup;
-  state: 'VIEW' | 'EDIT' | 'CREATE' = 'CREATE';
+  state: 'VIEW' | 'EDIT' | 'CREATE' | "SHARE" = 'CREATE';
 
   parseInt(value: string, radix = 10): number {
     return parseInt(value, radix);
@@ -40,6 +40,7 @@ export class KeywordComponent implements OnInit {
     }
     
   }
+
 
   public setState(data: 'VIEW' | 'EDIT' | 'CREATE'): void {
     this.state = data;
@@ -253,19 +254,27 @@ export class KeywordComponent implements OnInit {
    * нужно ли для загрузки списка пользователей привлекать au@web ?
    * */
   shareKeyword(): void {
-    //   if (this.selectedKeyword && this.shareForm.valid) {
-    //     this.keywordService.shareKeyword(
-    //       this.selectedKeyword.id,
-    //       this.shareForm.value.user_handle,
-    //       this.shareForm.value.access_level,
-    //     ).subscribe({
-    //       next: () => {
-    //         alert('Keyword shared successfully');
-    //         this.shareForm.reset();
-    //       },
-    //       error: (err) => console.error('Error sharing keyword:', err)
-    //     });
-    //   }
+    // if (this.selectedKeyword && this.shareForm.valid) {
+    //   this.keywordService.shareKeyword(
+    //     this.selectedKeyword.id,
+    //     this.shareForm.value.user_handle,
+    //     this.shareForm.value.access_level,
+    //   ).subscribe({
+    //     next: () => {
+    //       alert('Keyword shared successfully');
+    //       this.shareForm.reset();
+    //     },
+    //     error: (err) => console.error('Error sharing keyword:', err)
+    //   });
+    // }
+    
+  }
+
+  displayShareKeyword(selectedId?: number) {
+    const id = selectedId ?? this.selectedKeyword?.id
+    this.selectedKeyword = null;  
+    this.selectedKeyword = this.keywords.find(el => el.id === id)!
+    this.state = 'SHARE';
   }
 
   public hexColor(color: number): string {

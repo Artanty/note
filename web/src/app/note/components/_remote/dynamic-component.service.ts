@@ -35,11 +35,7 @@ export class DynamicComponentService {
     
     // Subscribe to output events
     if (outputs) {
-      // Object.keys(outputs).forEach(eventName => {
-      //   element.addEventListener(eventName, (event: CustomEvent) => {
-      //     outputs[eventName](event.detail);
-      //   });
-      // });
+      this.addOutputListeners(element, outputs)
     }
     
     // Get the native element of the view container
@@ -49,6 +45,21 @@ export class DynamicComponentService {
     containerElement.appendChild(element);
     
     return element;
+  }
+
+  private addOutputListeners<T extends Record<string, any>>(
+    element: HTMLElement, 
+    outputs: { [K in keyof T]?: (data: T[K]) => void }
+  ) {
+    Object.entries(outputs).forEach(([eventName, callback]) => {
+      if (callback) {
+        const handler = (event: Event) => {
+          const customEvent = event as CustomEvent;
+          callback(customEvent.detail);
+        };
+        element.addEventListener(eventName, handler);
+      }
+    });
   }
 
   private waitForWebComponent(tagName: string, timeout = 5000): Promise<void> {

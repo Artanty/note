@@ -5,6 +5,14 @@
   // row-gap: 59px;
 }
 
+.form {
+  position: relative;
+  z-index: 1;
+  padding-left: 40px;
+  padding-right: 40px;
+  padding-bottom: 20px;
+}
+
 .color-badge {
   display: inline-block;
   width: 20px;

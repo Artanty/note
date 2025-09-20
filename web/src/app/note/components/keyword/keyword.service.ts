@@ -1,5 +1,3 @@
-//keywordService.ts
-
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -56,11 +54,26 @@ export class KeywordService {
   }
 
   // Share keyword with another user
-  shareKeyword(keywordId: number, targetUserHandle: string, accessLevel: number, userHandle: string): Observable<KeywordAccess> {
-    return this.http.post<KeywordAccess>(`${this.baseUrl}/${keywordId}/share`, {
-      target_user_handle: targetUserHandle,
-      access_level: accessLevel,
-      user_handle: userHandle
+  shareKeyword(
+    keywordId: number, 
+    targetUserProviderId: string,
+    targetUserId: string, 
+    accessLevel: number
+  ): Observable<KeywordAccess> {
+    return this.http.post<KeywordAccess>(`${this.baseUrl}/share`, {
+      keywordId: keywordId,
+      targetUserProviderId: targetUserProviderId,
+      targetUserId: targetUserId,
+      accessLevel: accessLevel,
     });
+  }
+
+  public getAccessLevels() {
+    return [
+      { id: 1, name: 'Чтение' },
+      { id: 2, name: 'Чтение и запись' },
+      { id: 3, name: 'Админ' },
+      { id: 4, name: 'Нет доступа' },
+    ]
   }
 }

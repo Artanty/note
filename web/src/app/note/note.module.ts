@@ -12,8 +12,11 @@ import { BehaviorSubject, filter, Observable, take, tap } from "rxjs";
 import { BusEvent, EVENT_BUS, EVENT_BUS_PUSHER, HOST_NAME } from "typlib";
 import { createCustomElement } from "@angular/elements";
 import { KeywordComponent } from './components/keyword/keyword.component';
+import { WebComponentWrapperComponent } from "./utilites/web-component-wrapper";
+import { GuiDirective } from "./components/_remote/web-component-wrapper/gui.directive";
 
-import { WebComponentWrapperComponent } from "./components/_remote/web-component-wrapper";
+
+
 
 
 export const CHILD_ROUTES = [
@@ -54,9 +57,6 @@ export const CHILD_ROUTES = [
   declarations: [
     NoteComponent,
     KeywordComponent,
-    
-    WebComponentWrapperComponent
-
   ],
   imports: [
     CommonModule,
@@ -64,6 +64,9 @@ export const CHILD_ROUTES = [
     FormsModule,
     RouterModule.forChild(CHILD_ROUTES),
     HttpClientModule,
+    WebComponentWrapperComponent,
+    GuiDirective
+
   ],
   providers: [
     { 

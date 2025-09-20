@@ -3,6 +3,8 @@ import { ChangeDetectorRef, Component, Injector, OnInit, ViewChild, ViewContaine
 import { KeywordService, Keyword, KeywordAccess } from './keyword.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { loadRemoteModule } from '@angular-architects/module-federation';
+import { BehaviorSubject, map, Observable, ReplaySubject, startWith, Subject } from 'rxjs';
+import { dd } from '../../utilites/dd';
 
 @Component({
   selector: 'app-keyword',
@@ -18,29 +20,49 @@ export class KeywordComponent implements OnInit {
   selectedKeyword: Keyword | null = null;
   isEditing = false;
   shareForm: FormGroup;
-  createKeywordForm: FormGroup;
+  
   editKeywordForm: FormGroup;
   state: 'VIEW' | 'EDIT' | 'CREATE' | "SHARE" = 'CREATE';
+
+  keywordName: string = ''
+  public accessLevels: { name: string, id: number }[] = []
+  accessLevel$ = new BehaviorSubject<number | null>(null)
+  public isSaveAccessButtonDisabled$: Observable<boolean>
+  // isCreateButtonDisabled$ = new Subject<boolean>()
+  isCreateButtonDisabled$ = new BehaviorSubject<boolean>(true)
 
   parseInt(value: string, radix = 10): number {
     return parseInt(value, radix);
   }
-
-  public onColorChange(event: Event, isCreateForm: boolean): void {
-    const input = event.target as HTMLInputElement;
-    const hexValue = input.value.substring(1); // Remove #
-    if (isCreateForm) {
-      this.createKeywordForm.patchValue({
-        color: parseInt(hexValue, 16)
-      });  
-    } else {
-      this.editKeywordForm.patchValue({
-        color: parseInt(hexValue, 16)
-      });
-    }
-    
+  startWith = startWith
+  
+  onKeywordNameChange(data: any) {
+    console.log(!this.keywordName.length)
+    this.keywordName = data
+    this.isCreateButtonDisabled$.next(!this.keywordName.length)
   }
 
+  color: number = 5051602
+  userProviderId$: BehaviorSubject<string> = new BehaviorSubject('')
+  userId$: BehaviorSubject<string> = new BehaviorSubject('')
+
+  public onColorChange(data: string): void {
+    const hexValue = data.substring(1); // Remove #
+    this.color = parseInt(hexValue, 16)
+  }
+  public onColorChange2(event: Event, isCreateForm: boolean): void {
+    // const input = event.target as HTMLInputElement;
+    // const hexValue = input.value.substring(1); // Remove #
+    // if (isCreateForm) {
+    //   this.createKeywordForm.patchValue({
+    //     color: parseInt(hexValue, 16)
+    //   });  
+    // } else {
+    //   this.editKeywordForm.patchValue({
+    //     color: parseInt(hexValue, 16)
+    //   });
+    // }
+  }
 
   public setState(data: 'VIEW' | 'EDIT' | 'CREATE'): void {
     this.state = data;
@@ -52,10 +74,8 @@ export class KeywordComponent implements OnInit {
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef
   ) {
-    this.createKeywordForm = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(255)]],
-      color: [0x000000, [Validators.required]]
-    });
+    this.isSaveAccessButtonDisabled$ = this.accessLevel$.pipe(map(res => Boolean(!res)))
+    this.accessLevels = this.keywordService.getAccessLevels()
     this.editKeywordForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(255)]],
       color: [0x000000, [Validators.required]]
@@ -78,101 +98,34 @@ export class KeywordComponent implements OnInit {
   };
 
   userSelectorOutputs = {
-    userSelected: this.handleUserSelected.bind(this)
+    valueChange: this.handleUserSelected.bind(this)
   };
 
-  private handleUserSelected(user: any) {
-    console.log('User selected from web component:', user);
-    // Add to selected users
-    this.userSelectorInputs.selectedUsers = [
-      ...this.userSelectorInputs.selectedUsers,
-      user
-    ];
+  // interface Result {
+  //   providerId: string,
+  //   userId: string,
+  // }
+  handleUserSelected(data: any) {
+    this.userProviderId$.next(data.providerId)
+    this.userId$.next(data.userId)
+    this.cdr.detectChanges()
+    dd(data)
   }
 
-  async ngOnInit() {
+  ngOnInit() {
+
     // const module = await import('http://localhost:4204/remoteEntry2.js');
     // this.userSelectorComponent = module.UserSelectorComponent;
     this.loadKeywords();
+    // setTimeout(() => {
+    //   this.isCreateButtonDisabled$.next(!this.keywordName.length)
+    //   this.cdr.detectChanges()
+    // }, 1000)
     // this.loadAuthComponent()
     // this.loadRemoteApp('http://localhost:4204/remoteEntry2.js')
-    console.log(customElements.get('user-selector'))
-    console.log(await this.ensureWebComponent('user-selector'))
+    // console.log(customElements.get('user-selector'))
+    // console.log(await this.ensureWebComponent('user-selector'))
   }
-  async ensureWebComponent(tagName: string): Promise<boolean> {
-    // Quick check first
-    if (customElements.get(tagName)) return true;
-  
-    // Wait with polling
-    return new Promise(resolve => {
-      const interval = setInterval(() => {
-        if (customElements.get(tagName)) {
-          clearInterval(interval);
-          resolve(true);
-        }
-      }, 100);
-    
-      // Timeout after 5 seconds
-      setTimeout(() => {
-        clearInterval(interval);
-        resolve(false);
-      }, 5000);
-    });
-  }
-  async loadRemoteApp(remoteUrl: string) {
-    await this.loadScript(remoteUrl);
-  }
-
-  private loadScript(src: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = src;
-      script.onload = () => resolve();
-      script.onerror = () => reject();
-      document.head.appendChild(script);
-    });
-  }
-  
-  // onUserSelected(data: any) {
-  //   console.log(data)
-  // }
-
-  availableUsers = [
-    { id: 1, name: 'John Doe' },
-    { id: 2, name: 'Jane Smith' }
-  ];
-
-  handleUserSelection(user: any) {
-    console.log('User selected:', user);
-  }
-
-  // async loadAuthComponent(): Promise<void> {
-  //   const m = await loadRemoteModule({
-  //     remoteName: 'au',
-  //     // remoteEntry: 'https://au2.vercel.app/remoteEntry.js',
-  //     remoteEntry: 'http://localhost:4204/remoteEntry2.js',
-  //     // remoteEntry: './assets/mfe/doro/assets/mfe/au/remoteEntry.js',
-  //     exposedModule: './UserSelectorComponent',
-  //   });
-
-  //   this.viewContainer.createComponent(m.AuthComponent, {
-  //     injector: Injector.create({
-  //       providers: [
-  //         /**
-  //          * Вытащить отсюда этот компонент
-  //          * и положить на уровень host'а
-  //          */
-  //         {
-  //           provide: 'components',
-  //           useValue: {
-  //             LoadingComponent,
-  //           },
-  //           multi: true,
-  //         },
-  //       ],
-  //     }),
-  //   });
-  // }
 
   loadKeywords(): void {
     this.keywordService.getAllKeywords().subscribe({
@@ -195,10 +148,7 @@ export class KeywordComponent implements OnInit {
         this.selectedKeyword = keyword;
         this.isEditing = false;
         this.state = 'VIEW';
-        this.createKeywordForm.patchValue({
-          name: keyword.name,
-          color: keyword.color
-        });
+        
         this.editKeywordForm.patchValue({
           name: keyword.name,
           color: keyword.color
@@ -210,11 +160,16 @@ export class KeywordComponent implements OnInit {
   }
 
   createKeyword(): void {
-    if (this.createKeywordForm.valid) {
-      this.keywordService.createKeyword(this.createKeywordForm.value).subscribe({
+    if (this.isCreateButtonDisabled$.getValue() === false) {
+      const payload = { 
+        name: this.keywordName,
+        color: this.color
+      }
+      
+      this.keywordService.createKeyword(payload).subscribe({
         next: () => {
           this.loadKeywords();
-          this.createKeywordForm.reset();
+          // this.createKeywordForm.reset();
         },
         error: (err) => console.error('Error creating keyword:', err)
       });
@@ -251,21 +206,23 @@ export class KeywordComponent implements OnInit {
    * au@back сделает хэш(userHandler) пользователя, вернет его в note@back
    * note@back сохранит в таблице keyword_to_user данную связь
    * вопросы
-   * нужно ли для загрузки списка пользователей привлекать au@web ?
+   * нужно ли для загрузки списка пользователей привлекать au@web ? - da
    * */
   shareKeyword(): void {
     // if (this.selectedKeyword && this.shareForm.valid) {
-    //   this.keywordService.shareKeyword(
-    //     this.selectedKeyword.id,
-    //     this.shareForm.value.user_handle,
-    //     this.shareForm.value.access_level,
-    //   ).subscribe({
-    //     next: () => {
-    //       alert('Keyword shared successfully');
-    //       this.shareForm.reset();
-    //     },
-    //     error: (err) => console.error('Error sharing keyword:', err)
-    //   });
+
+    this.keywordService.shareKeyword(
+      this.selectedKeyword!.id,
+      this.userProviderId$.getValue(),
+      this.userId$.getValue(),
+      this.accessLevel$.getValue()!
+    ).subscribe({
+      next: () => {
+        alert('Keyword shared successfully');
+        this.shareForm.reset();
+      },
+      error: (err) => console.error('Error sharing keyword:', err)
+    });
     // }
     
   }
@@ -280,4 +237,35 @@ export class KeywordComponent implements OnInit {
   public hexColor(color: number): string {
     return `#${color?.toString(16).padStart(6, '0')}`;
   }
+
+  public accessLevelOnChange(data: number) {
+    this.accessLevel$.next(data)
+  }
 }
+// async loadAuthComponent(): Promise<void> {
+//   const m = await loadRemoteModule({
+//     remoteName: 'au',
+//     // remoteEntry: 'https://au2.vercel.app/remoteEntry.js',
+//     remoteEntry: 'http://localhost:4204/remoteEntry2.js',
+//     // remoteEntry: './assets/mfe/doro/assets/mfe/au/remoteEntry.js',
+//     exposedModule: './UserSelectorComponent',
+//   });
+
+//   this.viewContainer.createComponent(m.AuthComponent, {
+//     injector: Injector.create({
+//       providers: [
+//         /**
+//          * Вытащить отсюда этот компонент
+//          * и положить на уровень host'а
+//          */
+//         {
+//           provide: 'components',
+//           useValue: {
+//             LoadingComponent,
+//           },
+//           multi: true,
+//         },
+//       ],
+//     }),
+//   });
+// }

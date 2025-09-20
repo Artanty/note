@@ -11,19 +11,37 @@
     <div *ngIf="state === 'CREATE'">
       <div class="card-header">CREATE</div>
         <div class="card-body">
-          <form [formGroup]="createKeywordForm" (ngSubmit)="createKeyword()">
+          <div class="form">
             <div class="mb-3">
-              <label for="name" class="form-label">Keyword Name</label>
-              <input type="text" class="form-control" id="name" formControlName="name">
+              <!-- <label for="name" class="form-label">Keyword Name</label>
+              <input type="text" class="form-control" id="name" formControlName="name"> -->
+              <input gui type="text"
+                [inputs]="{
+                  label: 'Ключевое слово',
+                  value: keywordName
+                }"
+                [outputs]="{valueChange: onKeywordNameChange.bind(this)}"
+              >
             </div>
             <div class="mb-3">
-              <label for="color" class="form-label">Color</label>
-              <input type="color" class="form-control" id="color" 
-                     [value]="hexColor(createKeywordForm.get('color')?.value)"
-                     (input)="onColorChange($event, true)">
+              <input gui type="color"
+                [inputs]="{
+                  label: 'Цвет',
+                  value: hexColor(color)
+                }"
+                [outputs]="{valueChange: onColorChange.bind(this)}"
+              >
             </div>
-            <button type="submit" class="btn btn-primary" [disabled]="!createKeywordForm.valid">CREATE</button>
-          </form>
+            <!-- <button type="submit" class="btn btn-primary" [disabled]="!keywordName.length">CREATE</button> -->
+            <!-- {{ isCreateKeywordDisabled }} -->
+            <button gui type="submit"
+              [inputs]="{
+                label: 'Создать',
+                disabled: isCreateButtonDisabled$,
+              }"
+              [outputs]="{click: createKeyword.bind(this)}"
+            ></button>
+          </div>
         </div>
     </div>
     <div *ngIf="state === 'EDIT'">
@@ -37,13 +55,12 @@
           <label for="editColor" class="form-label">Color</label>
           <input type="color" class="form-control" id="editColor" 
                  [value]="hexColor(editKeywordForm.get('color')?.value)"
-                  (input)="onColorChange($event, false)">
+                  (input)="onColorChange2($event, false)">
         </div>
         <button type="submit" class="btn btn-primary me-2" [disabled]="!editKeywordForm.valid">UPDATE</button>
         
       </form>
     </div>
-
     <div *ngIf="state === 'VIEW'">
       <!-- Keyword Details -->
       <div class="card mb-4" *ngIf="selectedKeyword">
@@ -55,47 +72,52 @@
             <p><strong>Color:</strong> <span class="color-badge" [style.background]="hexColor(selectedKeyword.color)"></span> {{ hexColor(selectedKeyword.color) }}</p>
             <p><strong>Created:</strong> {{ selectedKeyword.created_at | date }}</p>
             <p><strong>Last Updated:</strong> {{ selectedKeyword.updated_at | date }}</p>
-            
-            
           </div>
-
-          
         </div>
       </div>
     </div>
-
     <div *ngIf="state === 'SHARE'">
       <div class="card" *ngIf="selectedKeyword">
         <h3 class="card-header">Поделиться</h3>
-        <div class="card-body">
+        <div class="form">
           <form [formGroup]="shareForm" (ngSubmit)="shareKeyword()">
 
             <div class="mb-3">
               <app-web-component-wrapper
                 [componentName]="'user-selector'"
                 [inputs]="userSelectorInputs"
-                [outputs]="userSelectorOutputs"
+                [outputs]="{valueChange: handleUserSelected.bind(this)}"
               ></app-web-component-wrapper>
+            </div>
 
-            </div>
-            <div class="mb-3">
-              <label for="accessLevel" class="form-label">Access Level</label>
-              <select class="form-select" id="accessLevel" formControlName="access_level">
-                <option value="1">Read</option>
-                <option value="2">Read/Write</option>
-                <option value="3">Admin</option>
-              </select>
-            </div>
-            <button type="submit" class="btn btn-primary" [disabled]="!shareForm.valid">Share</button>
+            <ng-container *ngIf="userId$ | async">
+              <!-- value: accessLevel -->
+              <select gui
+                [inputs]="{
+                  label: 'Доступ',
+                  options: accessLevels,
+                  
+                }"
+                [outputs]="{valueChange: accessLevelOnChange.bind(this)}"
+              ></select>
+            </ng-container>
+
+            <button gui type="submit"
+                [inputs]="{
+                  label: 'Сохранить',
+                  disabled: isSaveAccessButtonDisabled$,
+                }"
+                [outputs]="{click: shareKeyword.bind(this)}"
+            ></button>
+            
+
+            <!-- <button type="submit" class="btn btn-primary" [disabled]="!shareForm.valid">Share</button> -->
           </form>
         </div>
       </div>
     </div>
     
   </div>
-
-  
-
   <!-- Keywords List -->
   <div class="card card-list mb-4">
     <div class="card-header">LIST</div>

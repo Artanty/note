@@ -1,11 +1,11 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import keywordRoutes from './routes/keywordRoutes'
+import saveTempRoutes from './routes/saveTempRoutes'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import checkDBConnection from './core/db_check_connection'
-const saveTempRoutes = require('./routes/saveTempRoutes')
-import { validateApiKey } from './middlewares/validateApiKey';
+
 import { validateUserAccessToken } from './middlewares/validateUserAccessToken'
 
 

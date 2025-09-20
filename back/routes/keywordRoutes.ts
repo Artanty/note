@@ -3,6 +3,9 @@ import KeywordController from '../controllers/keywordController';
 import { handleError } from '../utils/handleError'
 import { validateUserAccessToken } from '../middlewares/validateUserAccessToken';
 import { getUserFromRequest } from '../utils/getUserFromRequest';
+import { patchAUBackUrlHeader } from '../middlewares/patchAUBackUrlHeader';
+import { getAUBackUrlFromRequest } from '../utils/getAUBackUrlFromRequest';
+import { dd } from '../utils/dd';
 const router = express.Router();
 
 router.post('/list', async (req, res) => {
@@ -66,43 +69,44 @@ router.post('/get-one', async (req, res) => {
 });
 
 // // Update keyword
-router.post('/:id', async (req, res) => {
-  const userHandler = getUserFromRequest(req)
-  const { id, name, color } = req.body;
+router.post('/update', async (req, res) => {
+  // const userHandler = getUserFromRequest(req)
+  // const { id, name, color } = req.body;
+  // try {
+  //   const success = await KeywordController.updateKeyword(
+  //     id,
+  //     userHandler,
+  //     { name, color }
+  //   );
+  //   if (!success) {
+  //     return res.status(403).json({ error: 'Update failed - check permissions' });
+  //   }
+  //   res.json({ success: true });
+  // } catch (error) {
+  //   handleError(res, error)
+  // }
+  res.status(503).json({ error: 'not implemented' });
+});
+
+// Share keyword with another user
+router.post('/share', patchAUBackUrlHeader, async (req, res) => {
   try {
-    const success = await KeywordController.updateKeyword(
-      id,
-      userHandler,
-      { name, color }
+    const success = await KeywordController.shareKeyword(
+      getUserFromRequest(req),
+      req.body.keywordId,
+      req.body.targetUserProviderId,
+      req.body.targetUserId,
+      req.body.accessLevel,
+      req
     );
     if (!success) {
-      return res.status(403).json({ error: 'Update failed - check permissions' });
+      return res.status(403).json({ error: 'Sharing failed - check permissions' });
     }
-    res.json({ success: true });
+    res.status(201).json({ success: true });
   } catch (error) {
     handleError(res, error)
   }
 });
-
-
-
-// // Share keyword with another user
-// router.post('/:id/share', async (req, res) => {
-//   try {
-//     const success = await KeywordController.shareKeyword(
-//       parseInt(req.params.id),
-//       await UserController.getUserDataFromRequest(req),
-//       req.body.targetHandle,
-//       req.body.accessLevel || 1
-//     );
-//     if (!success) {
-//       return res.status(403).json({ error: 'Sharing failed - check permissions' });
-//     }
-//     res.status(201).json({ success: true });
-//   } catch (error) {
-//     handleError(res, error)
-//   }
-// });
 
 
 export default router;

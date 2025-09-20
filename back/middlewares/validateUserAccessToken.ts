@@ -4,16 +4,8 @@ import { dd } from '../utils/dd';
 import path from 'path';
 import { checkFileWithData } from '../utils/fileStorageService';
 import { MemoryStorageService } from '../utils/memoryStorageService';
+import { sanitizePath } from '../utils/sanitizePath';
 const STORAGE_ROOT = path.join(__dirname, '..', 'storage');
-
-// Sanitize path components - DUPLICATE todo replace
-function sanitizePath(input: string) {
-  return input
-    .replace(/\.\./g, '')        // Remove parent directory references
-    .replace(/[^\w\-.%]/g, '_')  // Replace special chars with underscore
-    .replace(/\/+/g, '/')        // Collapse multiple slashes
-    .replace(/^\/|\/$/g, '');    // Trim leading/trailing slashes
-}
 
 export async function validateUserAccessToken(req: Request, res: Response, next: NextFunction) {
   dd('validateUserAccessToken START');

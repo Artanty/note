@@ -5,6 +5,7 @@ import path from 'path';
 import { validateApiKey } from '../middlewares/validateApiKey';
 import { checkFileWithData } from '../utils/fileStorageService';
 import { MemoryStorageService } from '../utils/memoryStorageService';
+import { sanitizePath } from '../utils/sanitizePath';
 
 
 const router = express.Router();
@@ -29,15 +30,6 @@ async function ensureDirExists(dirPath: string) {
   } catch (err: unknown) {
     if ((err as any).code !== 'EEXIST') throw err;
   }
-}
-
-// Sanitize path components
-export function sanitizePath(input: string) {
-  return input
-    .replace(/\.\./g, '')        // Remove parent directory references
-    .replace(/[^\w\-.%]/g, '_')  // Replace special chars with underscore
-    .replace(/\/+/g, '/')        // Collapse multiple slashes
-    .replace(/^\/|\/$/g, '');    // Trim leading/trailing slashes
 }
 
 /**
@@ -161,4 +153,4 @@ router.post('/check-var', async (req, res) => {
   });
 })
 
-module.exports = router;
+export default router;

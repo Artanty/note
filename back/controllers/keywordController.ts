@@ -1,5 +1,10 @@
 import dotenv from 'dotenv';
 import createPool from '../core/db_connection';
+import axios from 'axios';
+import { getAUBackUrlFromRequest } from '../utils/getAUBackUrlFromRequest';
+import express, { Request, Response } from 'express';
+import { dd } from '../utils/dd';
+import { obtainApiKey } from '../middlewares/obtainApiKey';
 
 dotenv.config();
  
@@ -77,7 +82,7 @@ class KeywordController {
 		}
 
 		if (fields.length === 0) {
-			throw new Error('No fields to update');
+			throw new Error('No fields to update1');
 		}
 
 		values.push(keywordId, userHandler);
@@ -93,10 +98,60 @@ class KeywordController {
 		return result.affectedRows > 0;
 	}
 
-	
+	static async getTargetUserHandler(
+		req: Request, 
+		targetProjectId: string,
+		targetUserProviderId: string,
+		targetUserId: string
+	) {
+		// get api key from key@back to make request to au@back
+		const thisBackOrigin = `${req.protocol}://${req.get('host')}` 
+		const backendUrlForRequest = getAUBackUrlFromRequest(req);
 
+		const backendServiceToken = await obtainApiKey(
+			targetProjectId, // target project, f.e: au@abck
+			backendUrlForRequest, // target URL, f.e: http://localhost:3214
+			thisBackOrigin // requester url (this back url), f.e: http://localhost:3224
+		)
+
+		const payload = {
+			targetUserProviderId,
+			targetUserId,
+		};
+		// todo предоставлять внешнее апи в момент шаринга токена
+		const response = await axios.post(
+			`${backendUrlForRequest}/api/users/encrypt`, 
+			payload,
+			{
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${backendServiceToken.token}`,
+					'X-Requester-Project': process.env.PROJECT_ID,
+					'X-Requester-Url': thisBackOrigin
+				},
+				timeout: 5000
+			}
+		);
+
+		return response.data
+	}
 	// Share keyword with another user
-	static async shareKeyword(keywordId: number, ownerHandle: string, targetHandle: any, accessLevel = 1) {
+	static async shareKeyword(
+		currentUserHandler: string,
+		keywordId: number, 
+		targetUserProviderId: string,
+		targetUserId: string,
+		accessLevel: number,
+		req: Request
+	) {
+
+		const targetUserHandler = await this.getTargetUserHandler(
+			req,
+			'au@back', 
+			targetUserProviderId, 
+			targetUserId
+		)
+
 		const pool = createPool();
 		const connection = await pool.getConnection();
 		try {
@@ -104,8 +159,8 @@ class KeywordController {
 
 			// Verify owner has admin rights
 			const [ownerCheck] = await connection.execute(
-				'SELECT 1 FROM keyword_to_user WHERE keyword_id = ? AND user_handle = ? AND access_level >= 2',
-				[keywordId, ownerHandle]
+				'SELECT 1 FROM keyword_to_user WHERE keyword_id = ? AND user_handler = ? AND access_level >= 2',
+				[keywordId, currentUserHandler]
 			);
 
 			if (ownerCheck.length === 0) {
@@ -114,10 +169,10 @@ class KeywordController {
 
 			// Create or update sharing relationship
 			await connection.execute(
-				`INSERT INTO keyword_to_user (keyword_id, user_handle, access_level)
-                 VALUES (?, ?, ?)
-                 ON DUPLICATE KEY UPDATE access_level = ?`,
-				[keywordId, targetHandle, accessLevel, accessLevel]
+				`INSERT INTO keyword_to_user (keyword_id, user_handler, access_level)
+		         VALUES (?, ?, ?)
+		         ON DUPLICATE KEY UPDATE access_level = ?`,
+				[keywordId, targetUserHandler, accessLevel, accessLevel]
 			);
 
 			await connection.commit();
@@ -128,6 +183,7 @@ class KeywordController {
 		} finally {
 			connection.release();
 		}
+		
 	}
 
 	// List all keywords accessible to a user

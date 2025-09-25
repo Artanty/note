@@ -4,36 +4,36 @@ import { NgModule, CUSTOM_ELEMENTS_SCHEMA, Injector, Inject } from "@angular/cor
 import { ReactiveFormsModule, FormsModule } from "@angular/forms";
 import { RouterModule } from "@angular/router";
 
-import { EVENT_BUS_LISTENER, NoteComponent } from "./note.component";
+import { NoteComponent } from "./note.component";
 
 import { CoreService } from "./services/core.service";
 
 import { BehaviorSubject, filter, Observable, take, tap } from "rxjs";
-import { BusEvent, EVENT_BUS, EVENT_BUS_PUSHER, HOST_NAME } from "typlib";
+import { BusEvent, EVENT_BUS, EVENT_BUS_LISTENER, EVENT_BUS_PUSHER, HOST_NAME } from "typlib";
 import { createCustomElement } from "@angular/elements";
 import { KeywordComponent } from './components/keyword/keyword.component';
-import { WebComponentWrapperComponent } from "./utilites/web-component-wrapper";
+
 import { GuiDirective } from "./components/_remote/web-component-wrapper/gui.directive";
+import { KeywordListComponent } from "./components/keyword/keyword-list/keyword-list.component";
+import { EditKeywordComponent } from "./components/keyword/edit-keyword/edit-keyword.component";
 
-
-
-
+import { GuiService } from "./components/_remote/web-component-wrapper/gui.service";
+import { WebComponentWrapperComponent } from "./components/_remote/web-component-wrapper/web-component-wrapper";
 
 export const CHILD_ROUTES = [
   {
     path: '', 
     component: NoteComponent,
     children: [
+      {
+        path: 'keyword-list', component: KeywordListComponent
+      },
+      {
+        path: 'keyword-edit/:id', component: EditKeywordComponent
+      },
       // {
-      //   // path: '', component: WellComponent
-      //   path: '', component: TicketDetailComponent
+      //   path: 'keyword-list', component: KeywordComponent
       // },
-      // {
-      //   path: 'ticket', component: TicketDetailComponent
-      // },
-      // { 
-      //   path: 'ticket/:id', component: TicketDetailComponent
-      // }, 
       // {
       //   path: 'ticket-create', component: TicketCreateComponent
       // },
@@ -64,11 +64,13 @@ export const CHILD_ROUTES = [
     FormsModule,
     RouterModule.forChild(CHILD_ROUTES),
     HttpClientModule,
+    GuiDirective,
     WebComponentWrapperComponent,
-    GuiDirective
+    
 
   ],
   providers: [
+    GuiService,
     { 
       provide: 'WEB_VERSION', 
       useValue: process.env['NOTE_WEB_VERSION']
@@ -86,7 +88,7 @@ export const CHILD_ROUTES = [
               return res.to === `${process.env['PROJECT_ID']}@${process.env['NAMESPACE']}`
             }),
             tap(res => {
-              console.log('faq module saw event: ' + res.event)
+              console.log('note module saw event: ' + res.event)
             })
           );
       },

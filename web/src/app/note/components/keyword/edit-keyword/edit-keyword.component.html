@@ -1,0 +1,20 @@
+<p>Изменение ключевого слова</p>
+
+<!-- <app-web-component-wrapper
+  [componentName]="'gui-input'"
+  [inputs]="{valueChangelabel: 'Логин',
+      value: keywordName$
+    }"
+  [outputs]="{valueChange: loginOnChange.bind(this)}"
+></app-web-component-wrapper> -->
+<form class="form-login" *ngIf="ready">
+  <div >
+  <input gui type="text" id="ddadwa" name="rewr"
+    [inputs]="{ 
+      label: 'Наименование',
+      value: keywordName$
+    }"
+    [outputs]="{valueChange: loginOnChange.bind(this)}"
+  >
+  </div>
+</form>

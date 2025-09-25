@@ -1,10 +1,11 @@
 
 import { ChangeDetectorRef, Component, Injector, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
-import { KeywordService, Keyword, KeywordAccess } from './keyword.service';
+import { KeywordService } from './keyword.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { loadRemoteModule } from '@angular-architects/module-federation';
 import { BehaviorSubject, map, Observable, ReplaySubject, startWith, Subject } from 'rxjs';
 import { dd } from '../../utilites/dd';
+import { Keyword } from './keyword.model';
 
 @Component({
   selector: 'app-keyword',
@@ -16,7 +17,13 @@ export class KeywordComponent implements OnInit {
   // @ViewChild('placeHolder', { read: ViewContainerRef })
   // viewContainer!: ViewContainerRef;
 
-  keywords: Keyword[] = [];
+  public sharedWithInputs = {
+    entityType: 'keyword',
+    entityId: '1',
+    currentUserId: '123'
+  }
+
+  
   selectedKeyword: Keyword | null = null;
   isEditing = false;
   shareForm: FormGroup;
@@ -116,7 +123,7 @@ export class KeywordComponent implements OnInit {
 
     // const module = await import('http://localhost:4204/remoteEntry2.js');
     // this.userSelectorComponent = module.UserSelectorComponent;
-    this.loadKeywords();
+    
     // setTimeout(() => {
     //   this.isCreateButtonDisabled$.next(!this.keywordName.length)
     //   this.cdr.detectChanges()
@@ -127,36 +134,8 @@ export class KeywordComponent implements OnInit {
     // console.log(await this.ensureWebComponent('user-selector'))
   }
 
-  loadKeywords(): void {
-    this.keywordService.getAllKeywords().subscribe({
-      next: (keywords) => {
-        this.keywords = keywords
-        if (this.selectedKeyword) {
-          const selectedId = this.selectedKeyword?.id 
-          this.selectedKeyword = null;  
-          this.selectedKeyword = this.keywords.find(el => el.id === selectedId)!
-        }
-        this.cdr.detectChanges()
-      },
-      error: (err) => console.error('Error loading keywords:', err)
-    });
-  }
-
   selectKeyword(id: number): void {
-    this.keywordService.getKeyword(id).subscribe({
-      next: (keyword) => {
-        this.selectedKeyword = keyword;
-        this.isEditing = false;
-        this.state = 'VIEW';
-        
-        this.editKeywordForm.patchValue({
-          name: keyword.name,
-          color: keyword.color
-        });
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Error deleting keyword:', err)
-    });
+    
   }
 
   createKeyword(): void {
@@ -168,7 +147,7 @@ export class KeywordComponent implements OnInit {
       
       this.keywordService.createKeyword(payload).subscribe({
         next: () => {
-          this.loadKeywords();
+          // this.loadKeywords();
           // this.createKeywordForm.reset();
         },
         error: (err) => console.error('Error creating keyword:', err)
@@ -185,19 +164,14 @@ export class KeywordComponent implements OnInit {
       }
       this.keywordService.updateKeyword(data).subscribe({
         next: () => {
-          this.loadKeywords();
+          // this.loadKeywords();
         },
         error: (err) => console.error('Error updating keyword:', err)
       });
     }
   }
 
-  deleteKeyword(id: number): any {
-    this.keywordService.deleteKeyword(id).subscribe({
-      next: () => this.loadKeywords(),
-      error: (err) => console.error('Error deleting keyword:', err)
-    });
-  }
+
 
   /**
    * загрузить доступных пользователей с их именами и авами (списками)
@@ -230,7 +204,7 @@ export class KeywordComponent implements OnInit {
   displayShareKeyword(selectedId?: number) {
     const id = selectedId ?? this.selectedKeyword?.id
     this.selectedKeyword = null;  
-    this.selectedKeyword = this.keywords.find(el => el.id === id)!
+    // this.selectedKeyword = this.keywords.find(el => el.id === id)!
     this.state = 'SHARE';
   }
 

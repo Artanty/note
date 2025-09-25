@@ -8,6 +8,7 @@ export const ElementsMap = {
   INPUT__COLOR: 'gui-input-color',
   BUTTON__SUBMIT: 'gui-button',
   BUTTON__BUTTON: 'gui-button',
+  DIV__USER_AVATAR: 'au-user-avatar',
 }
 @Injectable({
   providedIn: 'root',

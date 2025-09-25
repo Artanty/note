@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, Inject, InjectionToken, Injector, isDevMode, OnDestroy, OnInit } from "@angular/core";
 import { BehaviorSubject, combineLatest, filter, forkJoin, Observable, of, Subject, take, takeUntil, tap } from "rxjs";
-import { BusEvent, EVENT_BUS } from "typlib";
+import { BusEvent, EVENT_BUS, EVENT_BUS_LISTENER, EVENT_BUS_PUSHER } from "typlib";
 import { Router } from "@angular/router";
 import { FontInitializerService } from "./services/font-initializer.service";
 import { buildUrl } from "./services/route-builder";
@@ -8,36 +8,36 @@ import { CoreService } from "./services/core.service";
 import { ApiService, Keyword } from "./services/api.service";
 
 
-export const EVENT_BUS_LISTENER = new InjectionToken<Observable<BusEvent>>('');
-export const EVENT_BUS_PUSHER = new InjectionToken<
-  (busEvent: BusEvent) => void
->('');
+// export const EVENT_BUS_LISTENER = new InjectionToken<Observable<BusEvent>>('');
+// export const EVENT_BUS_PUSHER = new InjectionToken<
+//   (busEvent: BusEvent) => void
+// >('');
 
 @Component({
   selector: 'app-note',
   templateUrl: './note.component.html',
   styleUrl: './note.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    {
-      provide: EVENT_BUS_LISTENER,
-      useFactory: (eventBus$: BehaviorSubject<BusEvent>) => {
-        return eventBus$
-          .asObservable()
-          .pipe(filter((res) => res.to === `${process.env['PROJECT_ID']}@${process.env['NAMESPACE']}`));
-      },
-      deps: [EVENT_BUS],
-    },
-    {
-      provide: EVENT_BUS_PUSHER,
-      useFactory: (eventBus$: BehaviorSubject<BusEvent>) => {
-        return (busEvent: BusEvent) => {
-          eventBus$.next(busEvent);
-        };
-      },
-      deps: [EVENT_BUS],
-    },
-  ],
+  // providers: [
+  //   {
+  //     provide: EVENT_BUS_LISTENER,
+  //     useFactory: (eventBus$: BehaviorSubject<BusEvent>) => {
+  //       return eventBus$
+  //         .asObservable()
+  //         .pipe(filter((res) => res.to === `${process.env['PROJECT_ID']}@${process.env['NAMESPACE']}`));
+  //     },
+  //     deps: [EVENT_BUS],
+  //   },
+  //   {
+  //     provide: EVENT_BUS_PUSHER,
+  //     useFactory: (eventBus$: BehaviorSubject<BusEvent>) => {
+  //       return (busEvent: BusEvent) => {
+  //         eventBus$.next(busEvent);
+  //       };
+  //     },
+  //     deps: [EVENT_BUS],
+  //   },
+  // ],
 })
 
 export class NoteComponent implements OnInit, OnDestroy {
@@ -65,6 +65,7 @@ export class NoteComponent implements OnInit, OnDestroy {
   }
   
   ngOnInit(): void {
+    this.router.navigateByUrl('/note/keyword-list')
     combineLatest([
       this._routerPathSet$(),
       // this._registerComponentsService.listenComponentsRegistered$().pipe(

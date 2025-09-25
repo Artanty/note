@@ -13,15 +13,7 @@
   padding-bottom: 20px;
 }
 
-.color-badge {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  margin-right: 8px;
-  vertical-align: middle;
-  border: 1px solid #ddd;
-}
+
 
 .card {
   margin-bottom: 20px;
@@ -37,14 +29,7 @@
   background: #561111;
 }
 
-.card-list {
-  background: #0e3a0e;
 
-  & .card-body {
-    max-height: 120px;
-    overflow-y: auto;
-  }
-}
 
 .flex {
   display: flex;

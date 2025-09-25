@@ -81,7 +81,10 @@
         <h3 class="card-header">Поделиться</h3>
         <div class="form">
           <form [formGroup]="shareForm" (ngSubmit)="shareKeyword()">
-
+              <div gui type="shared_with"
+                [inputs]="sharedWithInputs"
+                [outputs]="{}"
+              ></div>
             <div class="mb-3">
               <app-web-component-wrapper
                 [componentName]="'user-selector'"
@@ -117,40 +120,7 @@
       </div>
     </div>
     
-  </div>
-  <!-- Keywords List -->
-  <div class="card card-list mb-4">
-    <div class="card-header">LIST</div>
-    <div class="card-body">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Color</th>
-            <th>Created</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let keyword of keywords">
-            <td>{{ keyword.name }}</td>
-            <td>
-              <span class="color-badge" [style.background]="hexColor(keyword.color)"></span>
-              <!-- {{ hexColor(keyword.color) }} -->
-            </td>
-            <td>{{ keyword.created_at | date:'dd.MM' }}</td>
-            <td>
-              <button class="btn btn-sm btn-info me-2" (click)="selectKeyword(keyword.id)">View</button>
-              <button class="btn btn-sm btn-danger" (click)="displayShareKeyword(keyword.id)">Share</button>
-              <button class="btn btn-sm btn-danger" (click)="deleteKeyword(keyword.id)">Del</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  
+  </div>  
 </div>
 
 

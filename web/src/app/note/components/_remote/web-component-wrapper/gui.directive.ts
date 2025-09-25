@@ -3,12 +3,16 @@ import {
   ViewContainerRef, Input, OnInit, OnDestroy, Injector, TemplateRef,
   ComponentRef, Optional,
   InjectionToken,
-  Inject
+  Inject,
+  ChangeDetectorRef
 } from '@angular/core';
-import { ElementsMap, GuiService } from './gui.service';
+import { ElementsMap, GuiService, isRemoteLoaded } from './gui.service';
 import { WebComponentWrapperComponent } from './web-component-wrapper';
 import { Router } from '@angular/router';
-import { buildCustomElName, waitForWebComponent } from './gui.utils';
+import { buildCustomElName } from './gui.utils';
+import { BusEvent, EVENT_BUS, EVENT_BUS_LISTENER, EVENT_BUS_PUSHER, HOST_NAME } from 'typlib';
+import { BehaviorSubject, filter, Observable } from 'rxjs';
+import { dd } from '../../../utilites/dd';
 
 export const GUI_PLACEHOLDER_TEMPLATE = new InjectionToken<TemplateRef<any>>('GUI_PLACEHOLDER_TEMPLATE');
 export type FormHTMLElement = HTMLElement & { type: string }
@@ -21,7 +25,7 @@ export type FormHTMLElement = HTMLElement & { type: string }
       useValue: null
     }
   ],
-  standalone: true
+  standalone: true,
 })
 export class GuiDirective implements OnInit, OnDestroy {
   @Input() inputs: any = {};
@@ -40,14 +44,49 @@ export class GuiDirective implements OnInit, OnDestroy {
     private injector: Injector,
     private router: Router,
     @Optional() @Inject(GUI_PLACEHOLDER_TEMPLATE) 
-    private injectedPlaceholderTemplate: TemplateRef<any> | null
+    private injectedPlaceholderTemplate: TemplateRef<any> | null,
+    private cdr: ChangeDetectorRef,
+    @Inject(EVENT_BUS) readonly bus: BehaviorSubject<BusEvent>,
+    @Inject(EVENT_BUS_LISTENER)
+    private readonly eventBusListener$: Observable<BusEvent>,
+    @Inject(EVENT_BUS_PUSHER)
+    private eventBusPusher: (busEvent: BusEvent) => void,
+    @Inject(HOST_NAME) private readonly hostName: string,
+
   ) {
     this.element = this.el.nativeElement;
+    this.eventBusListener$.
+      pipe(
+      // filter((res: BusEvent) => {
+      //   return res.to === `${process.env['PROJECT_ID']}@${process.env['NAMESPACE']}`
+      // }),
+    ).subscribe(res => {
+      console.log(res)
+      dd(res.payload.resource)
+      if (res.payload.resource) {
+        const result = res.payload.resource('service2')
+        dd(result)
+      }
+    })
   }
 
   async ngOnInit() {
     await this._findCustomElement()
+    this.isRemoteLoaded()
   }
+
+  isRemoteLoaded() {
+    const busEvent: BusEvent = {
+      from: `${process.env['PROJECT_ID']}@${process.env['NAMESPACE']}`,
+      to: this.hostName,
+      event: 'ASK_REMOTE_RESOURCE',
+      payload: {
+        remoteName: 'gui',
+      },
+    };
+    this.eventBusPusher(busEvent);
+  }
+  
 
   private async _findCustomElement() {
     try {
@@ -70,7 +109,7 @@ export class GuiDirective implements OnInit, OnDestroy {
       instance.componentName = customElementName;
       instance.inputs = { ...this.inputs, type: this.inputs.type ?? this.element.type };
       instance.outputs = this.outputs;
-      
+      this.cdr.detectChanges()
     } catch {
       this.showPlaceholder('Failed to load custom component');
     }

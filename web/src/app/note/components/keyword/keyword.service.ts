@@ -1,20 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-
-export interface Keyword {
-  id: number;
-  name: string;
-  color: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface KeywordAccess {
-  keyword_id: number;
-  user_handle: string;
-  access_level: number;
-}
+import { Keyword, KeywordAccess } from './keyword.model';
 
 @Injectable({
   providedIn: 'root'

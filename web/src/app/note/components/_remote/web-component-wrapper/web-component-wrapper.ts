@@ -7,12 +7,10 @@ import {
   OnChanges, 
   SimpleChanges,
   Injector,
-  ComponentFactoryResolver,
-  OnDestroy
+  ComponentFactoryResolver
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { waitForWebComponent } from './gui.utils';
-import { Observable, shareReplay, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-web-component-wrapper',
@@ -20,7 +18,7 @@ import { Observable, shareReplay, Subscription } from 'rxjs';
   standalone: true,
   imports: [CommonModule]
 })
-export class WebComponentWrapperComponent implements AfterViewInit, OnChanges, OnDestroy {
+export class WebComponentWrapperComponent implements AfterViewInit, OnChanges {
   @Input() componentName!: string;
   @Input() inputs?: Record<string, any>;
   @Input() outputs?: Record<string, (event: any) => void>;
@@ -29,7 +27,6 @@ export class WebComponentWrapperComponent implements AfterViewInit, OnChanges, O
   viewContainerRef!: ViewContainerRef;
 
   private element: HTMLElement | null = null;
-  private inputSubscriptions: Map<string, Subscription> = new Map();
 
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
@@ -37,21 +34,14 @@ export class WebComponentWrapperComponent implements AfterViewInit, OnChanges, O
   ) {}
 
   ngAfterViewInit() {
-    console.log('componentName: ' + this.componentName)
+    // console.log('componentName: ' + this.componentName)
     this.renderComponent();
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    console.log(changes)
     if (this.element && (changes['inputs'] || changes['outputs'])) {
       this.updateComponent();
     }
-  }
-
-  ngOnDestroy() {
-    // Clean up all subscriptions
-    this.inputSubscriptions.forEach(sub => sub.unsubscribe());
-    this.inputSubscriptions.clear();
   }
 
   private async renderComponent() {
@@ -68,64 +58,14 @@ export class WebComponentWrapperComponent implements AfterViewInit, OnChanges, O
   }
 
   private updateComponent() {
-    if (!this.element || !this.inputs) return;
+    if (!this.element) return;
 
     // Update inputs
-    Object.keys(this.inputs).forEach(key => {
-      const value = this.inputs![key];
-      
-      // Handle Observable inputs
-      if (value instanceof Observable) {
-        this.subscribeToInput(key, value);
-      } else {
-        // Handle regular inputs
-        (this.element as any)[key] = value;
-      }
-    });
-  }
-
-  private subscribeToInput(key: string, observable: Observable<any>) {
-    if (this.inputSubscriptions.has(key)) {
-      this.inputSubscriptions.get(key)!.unsubscribe();
-      this.inputSubscriptions.delete(key);
+    if (this.inputs) {
+      Object.keys(this.inputs).forEach(key => {
+        (this.element as any)[key] = this.inputs![key];
+      });
     }
-
-    // Use setTimeout to ensure the element is ready
-    setTimeout(() => {
-      const sharedObservable = observable.pipe(
-        shareReplay({ bufferSize: 1, refCount: true })
-      );
-
-      // Get immediate value if available
-      let immediateValue: any;
-      const tempSub = sharedObservable.subscribe(value => {
-        immediateValue = value;
-      });
-      tempSub.unsubscribe();
-
-      // Set immediate value if we got one
-      if (immediateValue !== undefined && this.element) {
-        (this.element as any)[key] = immediateValue;
-        console.log(`Immediate value for ${key}:`, immediateValue);
-      }
-
-      // Subscribe for future updates
-      const subscription = sharedObservable.subscribe(value => {
-        if (this.element) {
-          (this.element as any)[key] = value;
-          console.log(`Updated ${key} to:`, value);
-        }
-      });
-
-      this.inputSubscriptions.set(key, subscription);
-    });
-  }
-
-  private isBehaviorSubject(observable: any): boolean {
-    return observable && 
-      typeof observable.getValue === 'function' &&
-      typeof observable.next === 'function' &&
-      typeof observable.subscribe === 'function';
   }
 
   // Method to render web component dynamically
@@ -145,17 +85,10 @@ export class WebComponentWrapperComponent implements AfterViewInit, OnChanges, O
     // Create the web component element
     const element = document.createElement(tagName);
     
-    // Set input properties (including Observable subscriptions)
+    // Set input properties
     if (inputs) {
       Object.keys(inputs).forEach(key => {
-        const value = inputs[key];
-        
-        if (value instanceof Observable) {
-          console.log('value instanceof Observable')
-          this.subscribeToInput(key, value.pipe(shareReplay(1)));
-        } else {
-          (element as any)[key] = value;
-        }
+        (element as any)[key] = inputs[key];
       });
     }
     

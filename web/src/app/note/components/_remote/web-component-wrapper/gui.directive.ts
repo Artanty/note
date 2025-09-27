@@ -11,8 +11,9 @@ import { WebComponentWrapperComponent } from './web-component-wrapper';
 import { Router } from '@angular/router';
 import { buildCustomElName } from './gui.utils';
 import { BusEvent, EVENT_BUS, EVENT_BUS_LISTENER, EVENT_BUS_PUSHER, HOST_NAME } from 'typlib';
-import { BehaviorSubject, filter, Observable } from 'rxjs';
+import { BehaviorSubject, filter, Observable, skipWhile, take, takeUntil } from 'rxjs';
 import { dd } from '../../../utilites/dd';
+import { generateRandomId } from '../../../utilites/generateRandomId';
 
 export const GUI_PLACEHOLDER_TEMPLATE = new InjectionToken<TemplateRef<any>>('GUI_PLACEHOLDER_TEMPLATE');
 export type FormHTMLElement = HTMLElement & { type: string }
@@ -34,6 +35,7 @@ export class GuiDirective implements OnInit, OnDestroy {
   private element: FormHTMLElement;
   private customComponentRef: ComponentRef<any> | null = null;
   private placeholderViewRef: any = null;
+  private busEventId: string = ''
 
   constructor(
     private el: ElementRef,
@@ -55,33 +57,53 @@ export class GuiDirective implements OnInit, OnDestroy {
 
   ) {
     this.element = this.el.nativeElement;
-    this.eventBusListener$.
-      pipe(
-      // filter((res: BusEvent) => {
-      //   return res.to === `${process.env['PROJECT_ID']}@${process.env['NAMESPACE']}`
-      // }),
-    ).subscribe(res => {
-      console.log(res)
-      dd(res.payload.resource)
-      if (res.payload.resource) {
-        const result = res.payload.resource('service2')
-        dd(result)
-      }
-    })
+    this.busEventId = generateRandomId()
   }
 
   async ngOnInit() {
-    await this._findCustomElement()
-    this.isRemoteLoaded()
+    // await this._findCustomElement()
+    this.useRemoteResource('gui-directive')
   }
 
-  isRemoteLoaded() {
+  /**
+   * 'gui-direcitive'
+   */
+  async useRemoteResource(remoteResourceName: string) {
+    //subscribe
+    this.eventBusListener$.
+      pipe(
+        skipWhile(res => (res.event !== 'REMOTE_RESOURCE') || (res.payload.busEventId !== this.busEventId)),
+        take(1)
+      ).subscribe(async res => {
+        if (res.payload.resource && typeof res.payload.resource === 'function') {
+          const directiveClass = new res.payload.resource(
+            this.el,
+            this.renderer,
+            this.componentFactoryResolver,
+            this.viewContainerRef,
+            this.injector,
+            this.cdr,
+            this.hostName,
+            WebComponentWrapperComponent,
+            this.inputs,
+            this.outputs
+          );
+          await directiveClass._findCustomElement()
+        }
+      })
+    
+    
+    //push
+    const project = remoteResourceName.split('-')[0];
+    const resourceName = remoteResourceName.split('-')[1];
     const busEvent: BusEvent = {
       from: `${process.env['PROJECT_ID']}@${process.env['NAMESPACE']}`,
       to: this.hostName,
       event: 'ASK_REMOTE_RESOURCE',
       payload: {
-        remoteName: 'gui',
+        remoteName: project,
+        resourceName: resourceName,
+        busEventId: this.busEventId
       },
     };
     this.eventBusPusher(busEvent);

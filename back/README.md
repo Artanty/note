@@ -38,3 +38,10 @@ CREATE TABLE keyword_to_user (
 1. удаляем файл.
 2. возвращаем 403.
 3. todo ver 4.0: пробуем обновить accessToken через refreshToken
+
+
+==
+1 - read
+2 - write
+3 - admin
+4 - owner

@@ -17,7 +17,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule]
 })
-export class WebComponentWrapperComponent implements AfterViewInit, OnChanges {
+export class WebComponentWrapperComponent2 implements AfterViewInit, OnChanges {
   @Input() componentName!: string;
   @Input() inputs?: Record<string, any>;
   @Input() outputs?: Record<string, (event: any) => void>;

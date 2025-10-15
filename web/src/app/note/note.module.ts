@@ -10,14 +10,12 @@ import { CoreService } from "./services/core.service";
 
 import { BehaviorSubject, filter, Observable, take, tap } from "rxjs";
 import { BusEvent, EVENT_BUS, EVENT_BUS_LISTENER, EVENT_BUS_PUSHER, HOST_NAME } from "typlib";
-import { createCustomElement } from "@angular/elements";
 import { KeywordComponent } from './components/keyword/keyword.component';
 
 import { GuiDirective } from "./components/_remote/web-component-wrapper/gui.directive";
 import { KeywordListComponent } from "./components/keyword/keyword-list/keyword-list.component";
 import { EditKeywordComponent } from "./components/keyword/edit-keyword/edit-keyword.component";
 
-import { GuiService } from "./components/_remote/web-component-wrapper/gui.service";
 import { WebComponentWrapperComponent } from "./components/_remote/web-component-wrapper/web-component-wrapper";
 
 export const CHILD_ROUTES = [
@@ -70,7 +68,6 @@ export const CHILD_ROUTES = [
 
   ],
   providers: [
-    GuiService,
     { 
       provide: 'WEB_VERSION', 
       useValue: process.env['NOTE_WEB_VERSION']

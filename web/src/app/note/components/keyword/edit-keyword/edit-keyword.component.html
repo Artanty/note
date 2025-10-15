@@ -1,20 +1,64 @@
-<p>Изменение ключевого слова</p>
-
-<!-- <app-web-component-wrapper
-  [componentName]="'gui-input'"
-  [inputs]="{valueChangelabel: 'Логин',
-      value: keywordName$
-    }"
-  [outputs]="{valueChange: loginOnChange.bind(this)}"
-></app-web-component-wrapper> -->
-<form class="form-login" *ngIf="ready">
-  <div >
-  <input gui type="text" id="ddadwa" name="rewr"
-    [inputs]="{ 
-      label: 'Наименование',
-      value: keywordName$
-    }"
-    [outputs]="{valueChange: loginOnChange.bind(this)}"
-  >
+<div class="breadcrumbs">
+  <i class="mu mu-left"></i><span>Изменение ключевого слова</span>
+</div>
+      
+<div class="content" *ngIf="ready">
+  <div class="keyword_name__wrapper">
+    <input gui type="text"
+      [inputs]="{ 
+        label: 'Наименование',
+        value: keywordName$
+      }"
+      [outputs]="{valueChange: keywordNameOnChange.bind(this)}"
+    >
   </div>
-</form>
+
+  <div class="keyword_users__wrapper">
+    <div class="keyword_users__title">
+      {{ addUserAccessText | async }}
+    </div>
+    <button gui type="button"
+      [inputs]="{
+        icon: addUserAccessIcon
+      }"
+      [outputs]="{click: handleUserAccessAddToggleButton.bind(this)}"
+    ></button>
+  </div>
+
+  <div *ngIf="isAddingUserAccess | async" class="add-user-access__wrapper">
+    
+    <div gui type="user_selector"
+      [inputs]="userSelectorInputs"
+      [outputs]="{valueChange: handleUserSelected.bind(this)}"
+    ></div>
+
+    <div class="add-user-access__cta-row">
+      <ng-container *ngIf="selectedUserToAddAccess">
+        <div class="select-width-wrapper">
+          <select gui
+            [inputs]="{
+              options: accessLevels,
+                value: accessLevel 
+            }"
+            [outputs]="{valueChange: accessLevelOnChange.bind(this)}"
+          ></select>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="selectedAccessLevel">
+        <button gui type="button"
+          [inputs]="{
+            icon: 'mu mu-i-tick'
+          }"
+          [outputs]="{click: shareKeyword.bind(this)}"
+        ></button>
+      </ng-container>
+    </div>
+
+  </div>
+
+  <div gui type="user_access_list"
+    [inputs]="{ users: keywordUsers$ }"
+    [outputs]="{ itemActionAway: handleItemActionAway.bind(this) }"
+  ></div>
+    
+</div>

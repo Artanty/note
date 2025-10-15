@@ -11,3 +11,24 @@ export interface KeywordAccess {
 	user_handle: string;
 	access_level: number;
 }
+
+
+export interface KeywordUser {
+	"enrichedUsersData": [
+		{
+			"name": string
+			"id": string
+			"userHandler": string
+			"providerId": string
+			"avatar": string
+		}
+	]
+}
+
+export interface KeywordUsersRes {
+	enrichedUsersData: KeywordUser[]
+}
+
+export interface ShareKeywordRes {
+	"success": boolean
+}

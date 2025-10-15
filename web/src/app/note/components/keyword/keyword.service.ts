@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { Keyword, KeywordAccess } from './keyword.model';
+import { map, Observable, throwError } from 'rxjs';
+import { Keyword, KeywordAccess, KeywordUser, KeywordUsersRes, ShareKeywordRes } from './keyword.model';
 
 @Injectable({
   providedIn: 'root'
@@ -40,14 +40,27 @@ export class KeywordService {
     return this.http.post<any>(`${this.baseUrl}/delete`, data);
   }
 
+  // get list of users that have access to keyword
+  public getKeywordUsers(keywordId: number): Observable<KeywordUser[]> {
+    const data = {
+      "keywordId": keywordId
+    }
+    return this.http.post<KeywordUsersRes>(`${this.baseUrl}/users/list`, data).pipe(
+      map(res => {
+        return res.enrichedUsersData
+      }));
+  }
+  
+
+
   // Share keyword with another user
   shareKeyword(
     keywordId: number, 
     targetUserProviderId: string,
     targetUserId: string, 
     accessLevel: number
-  ): Observable<KeywordAccess> {
-    return this.http.post<KeywordAccess>(`${this.baseUrl}/share`, {
+  ): Observable<ShareKeywordRes> {
+    return this.http.post<ShareKeywordRes>(`${this.baseUrl}/share`, {
       keywordId: keywordId,
       targetUserProviderId: targetUserProviderId,
       targetUserId: targetUserId,
@@ -55,12 +68,26 @@ export class KeywordService {
     });
   }
 
+  // Share keyword with another user
+  unshareKeyword(
+    keywordId: number, 
+    targetUserProviderId: string,
+    targetUserId: string, 
+    
+  ): Observable<ShareKeywordRes> {
+    return this.http.post<ShareKeywordRes>(`${this.baseUrl}/unshare`, {
+      keywordId: keywordId,
+      targetUserProviderId: targetUserProviderId,
+      targetUserId: targetUserId,
+    });
+  }
+
   public getAccessLevels() {
     return [
-      { id: 1, name: 'Чтение' },
-      { id: 2, name: 'Чтение и запись' },
+      { id: 1, name: 'Просмотр' },
+      { id: 2, name: 'Изменение' },
       { id: 3, name: 'Админ' },
-      { id: 4, name: 'Нет доступа' },
+      { id: 4, name: 'Владелец' },
     ]
   }
 }

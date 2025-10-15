@@ -19,7 +19,7 @@ export async function validateUserAccessToken(req: Request, res: Response, next:
   const accessToken = authHeader.split(' ')[1];
   
   const hostOrigin = String(req.headers['x-requester-url']);
-
+  dd('hostOrigin: ' + hostOrigin)
   if (!accessToken || !hostOrigin) {
     dd('Missing required parameters');
     return res.status(400).json({ 
@@ -35,6 +35,7 @@ export async function validateUserAccessToken(req: Request, res: Response, next:
     const memStoreVariable = MemoryStorageService.get(safePath);
     
     let matchedData: any = null
+
     if (!memStoreVariable || (memStoreVariable.accessToken !== accessToken)) {
       dd('NO variable in memory store or did not match. trying file store...');
 
@@ -51,7 +52,7 @@ export async function validateUserAccessToken(req: Request, res: Response, next:
         'accessToken', 
         true
       )
-
+      dd(fileStoreVariable)
       if (!fileStoreVariable) {
         dd('NO variable in file store or did not match. 403');
         return res.status(403).json({ error: 'Invalid token' });

@@ -1,26 +1,31 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { hexColor } from '../../../utilites/hex-color';
 import { CommonModule } from '@angular/common';
-import { Keyword } from '../keyword.model';
+import { Keyword, KeywordUser } from '../keyword.model';
 import { KeywordService } from '../keyword.service';
 import { Router } from '@angular/router';
+import { GuiDirective } from '../../_remote/web-component-wrapper/gui.directive';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-keyword-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [GuiDirective, CommonModule],
   templateUrl: './keyword-list.component.html',
   styleUrl: './keyword-list.component.scss'
 })
 export class KeywordListComponent implements OnInit {
   public keywords: Keyword[] = [];
   hexColor = hexColor
-
+  // keywordUsers: KeywordUser[] = []; //temp
+  
   constructor(
     private keywordService: KeywordService,
     private cdr: ChangeDetectorRef,
     private router: Router
-  ) {}
+  ) {
+    // this.keywordUsers$ = this.keywordService.getKeywordUsers(50)
+  }
 
   ngOnInit() {
     this._loadKeywords();

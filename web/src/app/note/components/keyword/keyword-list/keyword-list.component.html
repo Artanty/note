@@ -1,4 +1,10 @@
 <div class="card card-list mb-4">
+
+	<!-- <div gui type="user_access_list"
+      [inputs]="{ users: keywordUsers$ }"
+      [outputs]="{}"
+    ></div> -->
+
     <div class="card-header">Список ключевых слов</div>
     <div class="card-body">
 		<table class="table">
@@ -11,17 +17,17 @@
 				</tr>
 			</thead>
 			<tbody>
-			  <tr *ngFor="let keyword of keywords" (click)="goToKeywordEdit(keyword.id)">
-			    <td>{{ keyword.name }}</td>
-			    <td>
-			      <span class="color-badge" [style.background]="hexColor(keyword.color)"></span>
-			      <!-- {{ hexColor(keyword.color) }} -->
-			    </td>
-			    <td>{{ keyword.created_at | date:'dd.MM' }}</td>
-			    <td>
-			      <button class="btn btn-sm btn-danger" (click)="deleteKeyword($event, keyword.id)">X</button>
-			    </td>
-			  </tr>
+			  	<tr *ngFor="let keyword of keywords" (click)="goToKeywordEdit(keyword.id)">
+				    <td>{{ keyword.name }}</td>
+				    <td>
+				      <span class="color-badge" [style.background]="hexColor(keyword.color)"></span>
+				      <!-- {{ hexColor(keyword.color) }} -->
+				    </td>
+				    <td>{{ keyword.created_at | date:'dd.MM' }}</td>
+				    <td>
+				      <button class="btn btn-sm btn-danger" (click)="deleteKeyword($event, keyword.id)">X</button>
+				    </td>
+				</tr>
 			</tbody>
 		</table>
     </div>

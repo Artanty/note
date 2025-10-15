@@ -1,12 +1,15 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, Inject, InjectionToken, Injector, isDevMode, OnDestroy, OnInit } from "@angular/core";
-import { BehaviorSubject, combineLatest, filter, forkJoin, Observable, of, Subject, take, takeUntil, tap } from "rxjs";
-import { BusEvent, EVENT_BUS, EVENT_BUS_LISTENER, EVENT_BUS_PUSHER } from "typlib";
+import { ChangeDetectionStrategy, Component, Inject, OnDestroy, OnInit } from "@angular/core";
+import { combineLatest, filter, Observable, of, Subject, take, takeUntil } from "rxjs";
+import { BusEvent, EVENT_BUS_LISTENER, EVENT_BUS_PUSHER } from "typlib";
 import { Router } from "@angular/router";
 import { FontInitializerService } from "./services/font-initializer.service";
-import { buildUrl } from "./services/route-builder";
 import { CoreService } from "./services/core.service";
-import { ApiService, Keyword } from "./services/api.service";
+import { KeywordService } from "./components/keyword/keyword.service";
 
+export interface Keyword {
+  id: number,
+  name: string
+}
 
 // export const EVENT_BUS_LISTENER = new InjectionToken<Observable<BusEvent>>('');
 // export const EVENT_BUS_PUSHER = new InjectionToken<
@@ -55,7 +58,7 @@ export class NoteComponent implements OnInit, OnDestroy {
     private readonly eventBusPusher: (busEvent: BusEvent) => void,
     // private _ticketQueueService: TicketQueueService,
     @Inject('WEB_VERSION') private readonly webVersion: string,
-    private readonly _apiService: ApiService
+    private readonly _keywordService: KeywordService
   ) {
     this.eventBusListener$.pipe(
       takeUntil(this.destroyed)
@@ -87,7 +90,7 @@ export class NoteComponent implements OnInit, OnDestroy {
   }
 
   private _load() {
-    this._apiService.getUserKeywords().subscribe(res => {
+    this._keywordService.getAllKeywords().subscribe(res => {
       this.keywordsOptions = res
     })
   }

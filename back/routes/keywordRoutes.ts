@@ -1,14 +1,14 @@
 import express from 'express'
 import KeywordController from '../controllers/keywordController';
 import { handleError } from '../utils/handleError'
-import { validateUserAccessToken } from '../middlewares/validateUserAccessToken';
 import { getUserFromRequest } from '../utils/getUserFromRequest';
 import { patchAUBackUrlHeader } from '../middlewares/patchAUBackUrlHeader';
-import { getAUBackUrlFromRequest } from '../utils/getAUBackUrlFromRequest';
 import { dd } from '../utils/dd';
 const router = express.Router();
 
 router.post('/list', async (req, res) => {
+  dd('/list');
+  dd(req.body)
   try {
     const user = getUserFromRequest(req);
     const keywords = await KeywordController.getUserKeywords(user);
@@ -103,6 +103,33 @@ router.post('/share', patchAUBackUrlHeader, async (req, res) => {
       return res.status(403).json({ error: 'Sharing failed - check permissions' });
     }
     res.status(201).json({ success: true });
+  } catch (error) {
+    handleError(res, error)
+  }
+});
+
+// UNShare keyword with another user
+router.post('/unshare', patchAUBackUrlHeader, async (req, res) => {
+  try {
+    const unshare = await KeywordController.unshareKeyword(
+      getUserFromRequest(req),
+      req.body.keywordId,
+      req.body.targetUserProviderId,
+      req.body.targetUserId,
+      req
+    );
+    
+    res.status(201).json({ success: unshare });
+  } catch (error) {
+    handleError(res, error)
+  }
+});
+
+router.post('/users/list', patchAUBackUrlHeader, async (req, res) => {
+  try {
+    const user = getUserFromRequest(req);
+    const keywords = await KeywordController.getKeywordUsers(user, req);
+    res.json(keywords);
   } catch (error) {
     handleError(res, error)
   }

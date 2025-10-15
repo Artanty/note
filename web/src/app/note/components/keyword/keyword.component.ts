@@ -179,8 +179,6 @@ export class KeywordComponent implements OnInit {
    * note@back отправит эти данные в au@back
    * au@back сделает хэш(userHandler) пользователя, вернет его в note@back
    * note@back сохранит в таблице keyword_to_user данную связь
-   * вопросы
-   * нужно ли для загрузки списка пользователей привлекать au@web ? - da
    * */
   shareKeyword(): void {
     // if (this.selectedKeyword && this.shareForm.valid) {

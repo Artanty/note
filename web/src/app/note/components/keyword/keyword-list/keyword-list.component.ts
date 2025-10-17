@@ -27,11 +27,20 @@ export class KeywordListComponent implements OnInit {
     // this.keywordUsers$ = this.keywordService.getKeywordUsers(50)
   }
 
+  menuItems = [
+    { id: 'DELETE', name: 'Удалить' },
+  ];
+  onItemSelect(user: any, selectedAction: any) {
+    // this.itemActionAway.emit({ user, selectedAction: selectedAction.id })
+  }
+
+
+
   ngOnInit() {
     this._loadKeywords();
   }
 
-  public deleteKeyword(event: Event, id: number) {
+  public deleteKeyword(id: number, event: Event) {
     event.stopPropagation();
     console.log('delete clicked')
     this.keywordService.deleteKeyword(id).subscribe({

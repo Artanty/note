@@ -1,9 +1,4 @@
-<div class="card card-list mb-4">
-
-	<!-- <div gui type="user_access_list"
-      [inputs]="{ users: keywordUsers$ }"
-      [outputs]="{}"
-    ></div> -->
+<!-- <div class="card card-list mb-4">
 
     <div class="card-header">Список ключевых слов</div>
     <div class="card-body">
@@ -21,7 +16,7 @@
 				    <td>{{ keyword.name }}</td>
 				    <td>
 				      <span class="color-badge" [style.background]="hexColor(keyword.color)"></span>
-				      <!-- {{ hexColor(keyword.color) }} -->
+			
 				    </td>
 				    <td>{{ keyword.created_at | date:'dd.MM' }}</td>
 				    <td>
@@ -31,4 +26,29 @@
 			</tbody>
 		</table>
     </div>
+</div> -->
+
+<div class="list-wrapper">
+	<ul>
+		<li *ngFor="let keyword of keywords">
+			<div>
+				<div class="color-badge" [style.background]="hexColor(keyword.color)"></div>
+				<div class="name">
+					{{ keyword.name }}
+				</div>
+			</div>
+			<div class="action">
+			  <i title="Изменение ключевого слова" class="mu mu-edit" (click)="goToKeywordEdit(keyword.id)"></i>
+		   	  <div gui type="dropdown"
+			   	  [inputs]="{
+			   	  	buttonIcon: 'mu mu-opts-v',
+			   	  	items: menuItems
+			   	  }"
+			   	  [outputs]="{
+					itemSelected: deleteKeyword.bind(this, keyword.id)
+			   	  }"
+		   	  ></div>
+			</div>
+		</li>
+	</ul>	
 </div>

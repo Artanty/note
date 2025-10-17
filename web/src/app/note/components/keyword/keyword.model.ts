@@ -12,17 +12,14 @@ export interface KeywordAccess {
 	access_level: number;
 }
 
-
 export interface KeywordUser {
-	"enrichedUsersData": [
-		{
-			"name": string
-			"id": string
-			"userHandler": string
-			"providerId": string
-			"avatar": string
-		}
-	]
+	"name": string
+	"id": string
+	"userHandler": string
+	"providerId": string
+	providerName: string
+	"avatar": string
+	accessLevel: string
 }
 
 export interface KeywordUsersRes {

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { map, Observable, throwError } from 'rxjs';
 import { Keyword, KeywordAccess, KeywordUser, KeywordUsersRes, ShareKeywordRes } from './keyword.model';
+import { validateShareKeyword } from './edit-keyword/edit-keyword.validation';
 
 @Injectable({
   providedIn: 'root'
@@ -60,6 +61,7 @@ export class KeywordService {
     targetUserId: string, 
     accessLevel: number
   ): Observable<ShareKeywordRes> {
+    validateShareKeyword(keywordId, targetUserProviderId, targetUserId, accessLevel)
     return this.http.post<ShareKeywordRes>(`${this.baseUrl}/share`, {
       keywordId: keywordId,
       targetUserProviderId: targetUserProviderId,

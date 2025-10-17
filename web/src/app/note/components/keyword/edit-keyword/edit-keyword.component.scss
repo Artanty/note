@@ -9,11 +9,34 @@
 	& i {
 		font-size: 20px;
 		margin-right: 10px;
+		cursor: pointer;
 	}
 }
 
 .keyword_name__wrapper {
 	padding: 8px 14px;
+	padding-top: 0;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-end;
+	column-gap: 16px;
+
+	&>div {
+		flex-grow: 1;
+	}
+}
+
+.keyword_color__wrapper {
+	padding: 8px 14px;
+	padding-top: 0;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-end;
+	column-gap: 16px;
+
+	&>div {
+		flex-grow: 1;
+	}
 }
 
 .keyword_users__wrapper {

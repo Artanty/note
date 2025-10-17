@@ -2,7 +2,7 @@ export interface ShareKeywordReq {
     "keywordId": number
     "targetUserProviderId": string
     "targetUserId": string
-    "accessLevel": string
+    "accessLevel": string //'number'
 }
 // "keywordId": 51,
 // "targetUserProviderId": "2",

@@ -4,10 +4,12 @@ import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 import { KeywordService } from '../keyword.service';
 import { FormBuilder, FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { GuiDirective } from '../../_remote/web-component-wrapper/gui.directive';
 import { WebComponentWrapperComponent } from '../../_remote/web-component-wrapper/web-component-wrapper';
 import { KeywordUser } from '../keyword.model';
+import { validateShareKeyword } from './edit-keyword.validation';
+import { LocalizedAccessLevels } from '../../../utilites/access-levels.constant';
 
 @Component({
   selector: 'app-edit-keyword',
@@ -43,6 +45,16 @@ export class EditKeywordComponent implements OnInit {
     { id: 3, name: 'Админ' }
   ]
   accessLevel: number = 0
+  color: number = 0 //5051602
+  color$ = new BehaviorSubject<number>(0)
+
+  selectedUserToAddAccess: any = null
+  selectedAccessLevel: number | null = null
+
+  get colorObs$(): Observable<string> {
+    return this.color$.asObservable().pipe(
+      map(res => this.hexColor(res)))
+  }
 
   get addUserAccessText(): Observable<string> {
     return combineLatest([
@@ -71,12 +83,27 @@ export class EditKeywordComponent implements OnInit {
       }))
   }
 
+  get isColorChanged$(): Observable<boolean> {
+    return this.color$.asObservable().pipe(map(res => {
+
+      return res !== this.keyword?.color
+    }))
+  }
+
+  get isNameChanged$(): Observable<boolean> {
+    return this.keywordName$.asObservable().pipe(map(res => {
+      
+      return res !== this.keyword?.name
+    }))
+  }
+
   constructor(
     private keywordService: KeywordService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
     private route: ActivatedRoute,
     private injector: Injector,
+    private location: Location
   ) {} 
 
   ngOnInit(): void {
@@ -84,7 +111,17 @@ export class EditKeywordComponent implements OnInit {
     this._loadKeyword(Number(id)); 
     this.getKeywordUsers(Number(id))
   }
-    
+
+  public hexColor(color: number): string {
+    return `#${color?.toString(16).padStart(6, '0')}`;
+  }
+
+  public onColorChange(data: string): void {
+    const hexValue = data.substring(1); // Remove #
+    const color = parseInt(hexValue, 16)
+    this.color$.next(color)
+    this.cdr.detectChanges();
+  }
   public shareKeyword() {
     this.keywordService.shareKeyword(
       this.keyword.id,
@@ -101,7 +138,20 @@ export class EditKeywordComponent implements OnInit {
     });
   }
 
-
+  public updateKeyword() {
+    const data = {
+      id: this.keyword.id,
+      name: this.keywordName$.getValue(),
+      color: this.color$.getValue(),
+    }
+    this.keywordService.updateKeyword(data).subscribe({
+      next: (res) => {
+        const id = this.route.snapshot.paramMap.get('id');
+        this._loadKeyword(Number(id))
+      },
+      error: (err) => console.error('Error updating keyword:', err)
+    });
+  }
 
   handleUserAccessAddToggleButton() {
     const currentValue = this.isAddingUserAccess.getValue()
@@ -141,8 +191,18 @@ export class EditKeywordComponent implements OnInit {
 
   private getKeywordUsers(id: number) {
     this.keywordService.getKeywordUsers(id).subscribe(res => {
-      this.keywordUsers$.next(res)
+      const usersWithLocalizedAccessLevels = res.map((el) => ({ ...el, accessLevel: this.localizeAccessLevel(el.accessLevel) }))
+      this.keywordUsers$.next(usersWithLocalizedAccessLevels)
     })
+  }
+
+  private localizeAccessLevel(level: string): string {
+    try {
+      return LocalizedAccessLevels[level as keyof typeof LocalizedAccessLevels]
+    } catch (e) {
+      console.log('[ERROR localizeAccessLevel]: ' + e)
+      return 'UNKNOWN'
+    }
   }
 
   public keywordNameOnChange(data: any) {
@@ -150,9 +210,16 @@ export class EditKeywordComponent implements OnInit {
   }
 
   private _loadKeyword(id: number) {
+    this.ready = false
+    this.selectedUserToAddAccess = null
+    this.selectedAccessLevel = null
+    this.keyword = null
+
     this.keywordService.getKeyword(id).subscribe({
       next: (keyword) => {
         this.keywordName$.next(keyword.name)
+        this.color = keyword.color
+        this.color$.next(keyword.color)
         this.keyword = keyword
         this.ready = true;
         this.cdr.detectChanges();
@@ -160,19 +227,18 @@ export class EditKeywordComponent implements OnInit {
       error: (err) => console.error('Error deleting keyword:', err)
     });
   }
-  selectedUserToAddAccess: any = null
+    
   handleUserSelected(data: any) {
     this.selectedUserToAddAccess = data
     this.cdr.detectChanges()
   }
-  selectedAccessLevel: number | null = null
+
   accessLevelOnChange(data: any) {
     this.selectedAccessLevel = data
     this.cdr.detectChanges()
   }
 
   handleItemActionAway(data: any) {
-    dd(data)
     if (data.selectedAction === 'DELETE') {
       this.unshareKeyword(data.user)
     }
@@ -190,5 +256,9 @@ export class EditKeywordComponent implements OnInit {
       },
       error: (err) => console.error('Error unsharing keyword:', err)
     });
+  }
+
+  public stepBack() {
+    this.location.back()
   }
 }

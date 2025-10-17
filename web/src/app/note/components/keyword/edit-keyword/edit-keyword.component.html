@@ -1,17 +1,48 @@
 <div class="breadcrumbs">
-  <i class="mu mu-left"></i><span>Изменение ключевого слова</span>
+  <i class="mu mu-left" (click)="stepBack()"></i><span>Изменение ключевого слова</span>
 </div>
       
 <div class="content" *ngIf="ready">
   <div class="keyword_name__wrapper">
-    <input gui type="text"
-      [inputs]="{ 
-        label: 'Наименование',
-        value: keywordName$
-      }"
-      [outputs]="{valueChange: keywordNameOnChange.bind(this)}"
-    >
+    <div>
+      <input gui type="text"
+        [inputs]="{ 
+          label: 'Наименование',
+          value: keywordName$
+        }"
+        [outputs]="{valueChange: keywordNameOnChange.bind(this)}"
+      >
+    </div>
+    <ng-container *ngIf="isNameChanged$ | async">
+      <button gui type="button"
+        [inputs]="{
+          icon: 'mu mu-i-tick'
+        }"
+        [outputs]="{click: updateKeyword.bind(this)}"
+      ></button>
+    </ng-container>
+    
   </div>
+  <div class="keyword_color__wrapper">
+    <div>
+      <input gui type="color"
+        [inputs]="{
+          label: 'Цвет',
+          value: colorObs$
+        }"
+        [outputs]="{valueChange: onColorChange.bind(this)}"
+      >
+    </div>
+    <ng-container *ngIf="isColorChanged$ | async">
+      <button gui type="button"
+        [inputs]="{
+          icon: 'mu mu-i-tick'
+        }"
+        [outputs]="{click: updateKeyword.bind(this)}"
+      ></button>
+    </ng-container>
+  </div>
+  
 
   <div class="keyword_users__wrapper">
     <div class="keyword_users__title">

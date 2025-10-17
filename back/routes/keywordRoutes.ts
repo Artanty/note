@@ -70,22 +70,22 @@ router.post('/get-one', async (req, res) => {
 
 // // Update keyword
 router.post('/update', async (req, res) => {
-  // const userHandler = getUserFromRequest(req)
-  // const { id, name, color } = req.body;
-  // try {
-  //   const success = await KeywordController.updateKeyword(
-  //     id,
-  //     userHandler,
-  //     { name, color }
-  //   );
-  //   if (!success) {
-  //     return res.status(403).json({ error: 'Update failed - check permissions' });
-  //   }
-  //   res.json({ success: true });
-  // } catch (error) {
-  //   handleError(res, error)
-  // }
-  res.status(503).json({ error: 'not implemented' });
+  const userHandler = getUserFromRequest(req)
+  const { id, name, color } = req.body;
+  try {
+    const success = await KeywordController.updateKeyword(
+      id,
+      userHandler,
+      { name, color }
+    );
+    if (!success) {
+      return res.status(403).json({ error: 'Update failed - check permissions' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    handleError(res, error)
+  }
+  // res.status(503).json({ error: 'not implemented' });
 });
 
 // Share keyword with another user
